@@ -1,0 +1,676 @@
+fileFormatVersion: 2
+guid: 9f019d4edf5ffc7498af5ec64d606dc5
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -253790050782261879
+    second: PTITer's big assignment_0
+  - first:
+      213: -6856427431337337150
+    second: PTITer's big assignment_1
+  - first:
+      213: 4580115843200181138
+    second: PTITer's big assignment_2
+  - first:
+      213: -5249150020088235857
+    second: PTITer's big assignment_3
+  - first:
+      213: -4621347352030074505
+    second: PTITer's big assignment_4
+  - first:
+      213: -245364284762467606
+    second: PTITer's big assignment_5
+  - first:
+      213: -4785724993850828564
+    second: PTITer's big assignment_6
+  - first:
+      213: 4106433069488113508
+    second: PTITer's big assignment_7
+  - first:
+      213: -5507260899179920035
+    second: PTITer's big assignment_8
+  - first:
+      213: 6179085585012502567
+    second: PTITer's big assignment_9
+  - first:
+      213: -3924298735218554494
+    second: PTITer's big assignment_10
+  - first:
+      213: -8545986329231290522
+    second: PTITer's big assignment_11
+  - first:
+      213: 5091191993625661837
+    second: PTITer's big assignment_12
+  - first:
+      213: -4922574930927523146
+    second: PTITer's big assignment_13
+  - first:
+      213: -7357593959763276155
+    second: PTITer's big assignment_14
+  - first:
+      213: -4783361273936290708
+    second: PTITer's big assignment_15
+  - first:
+      213: -4266441832378862357
+    second: PTITer's big assignment_16
+  - first:
+      213: 7010140445834629990
+    second: PTITer's big assignment_17
+  - first:
+      213: 1296140450702156941
+    second: PTITer's big assignment_18
+  - first:
+      213: -1682254128149878865
+    second: PTITer's big assignment_19
+  - first:
+      213: 6837658736019384476
+    second: PTITer's big assignment_20
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 1
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: PTITer's big assignment_0
+      rect:
+        serializedVersion: 2
+        x: 119
+        y: 74
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 98d489f1b4b5a7cf0800000000000000
+      internalID: -253790050782261879
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_1
+      rect:
+        serializedVersion: 2
+        x: 164
+        y: 74
+        width: 32
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ced4eef39319d0a0800000000000000
+      internalID: -6856427431337337150
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_2
+      rect:
+        serializedVersion: 2
+        x: 204
+        y: 74
+        width: 32
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 293e518c717df8f30800000000000000
+      internalID: 4580115843200181138
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_3
+      rect:
+        serializedVersion: 2
+        x: 244
+        y: 74
+        width: 32
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa8f7ef2ed54727b0800000000000000
+      internalID: -5249150020088235857
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_4
+      rect:
+        serializedVersion: 2
+        x: 279
+        y: 74
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7792e8a711daddfb0800000000000000
+      internalID: -4621347352030074505
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_5
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 74
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ae25a26ab7a489cf0800000000000000
+      internalID: -245364284762467606
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_6
+      rect:
+        serializedVersion: 2
+        x: 369
+        y: 94
+        width: 12
+        height: 17
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce810d45970b59db0800000000000000
+      internalID: -4785724993850828564
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_7
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 74
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 46781c0be1bfcf830800000000000000
+      internalID: 4106433069488113508
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_8
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 14
+        width: 36
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d558bf214674293b0800000000000000
+      internalID: -5507260899179920035
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_9
+      rect:
+        serializedVersion: 2
+        x: 44
+        y: 14
+        width: 32
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7203863f99580c550800000000000000
+      internalID: 6179085585012502567
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_10
+      rect:
+        serializedVersion: 2
+        x: 79
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 28988c697171a89c0800000000000000
+      internalID: -3924298735218554494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_11
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 66f03de46be866980800000000000000
+      internalID: -8545986329231290522
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_12
+      rect:
+        serializedVersion: 2
+        x: 199
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d81de57d42c87a640800000000000000
+      internalID: 5091191993625661837
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_13
+      rect:
+        serializedVersion: 2
+        x: 239
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6ba62d56e208fabb0800000000000000
+      internalID: -4922574930927523146
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_14
+      rect:
+        serializedVersion: 2
+        x: 284
+        y: 14
+        width: 32
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58e00ca964394e990800000000000000
+      internalID: -7357593959763276155
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_15
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c6cdaa2c3461e9db0800000000000000
+      internalID: -4783361273936290708
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_16
+      rect:
+        serializedVersion: 2
+        x: 359
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: be4f03e02cd8ac4c0800000000000000
+      internalID: -4266441832378862357
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_17
+      rect:
+        serializedVersion: 2
+        x: 399
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 663529b1895094160800000000000000
+      internalID: 7010140445834629990
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_18
+      rect:
+        serializedVersion: 2
+        x: 439
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d84ed176fd0dcf110800000000000000
+      internalID: 1296140450702156941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_19
+      rect:
+        serializedVersion: 2
+        x: 479
+        y: 14
+        width: 37
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa721bd88ce67a8e0800000000000000
+      internalID: -1682254128149878865
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: PTITer's big assignment_20
+      rect:
+        serializedVersion: 2
+        x: 524
+        y: 14
+        width: 32
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9828c7946e34ee50800000000000000
+      internalID: 6837658736019384476
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 5e97eb03825dee720800000000000000
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      PTITer's big assignment_0: -253790050782261879
+      PTITer's big assignment_1: -6856427431337337150
+      PTITer's big assignment_10: -3924298735218554494
+      PTITer's big assignment_11: -8545986329231290522
+      PTITer's big assignment_12: 5091191993625661837
+      PTITer's big assignment_13: -4922574930927523146
+      PTITer's big assignment_14: -7357593959763276155
+      PTITer's big assignment_15: -4783361273936290708
+      PTITer's big assignment_16: -4266441832378862357
+      PTITer's big assignment_17: 7010140445834629990
+      PTITer's big assignment_18: 1296140450702156941
+      PTITer's big assignment_19: -1682254128149878865
+      PTITer's big assignment_2: 4580115843200181138
+      PTITer's big assignment_20: 6837658736019384476
+      PTITer's big assignment_3: -5249150020088235857
+      PTITer's big assignment_4: -4621347352030074505
+      PTITer's big assignment_5: -245364284762467606
+      PTITer's big assignment_6: -4785724993850828564
+      PTITer's big assignment_7: 4106433069488113508
+      PTITer's big assignment_8: -5507260899179920035
+      PTITer's big assignment_9: 6179085585012502567
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
