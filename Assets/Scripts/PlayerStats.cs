@@ -8,7 +8,7 @@ public class PlayerStats : MonoBehaviourPun
     [Header("Cấu hình Chỉ số")]
     public float maxEnergy = 100f;
     public float maxSanity = 100f;
-    public float decayRate = 0.25f; // Tốc độ tụt chỉ số mỗi giây
+    public float decayRate = 0.01f; // Tốc độ tụt chỉ số mỗi giây
 
     [Header("Chỉ số hiện tại (Read Only)")]
     public float currentEnergy;
@@ -101,6 +101,8 @@ public class PlayerStats : MonoBehaviourPun
             
             currentProg += amount;
             if (currentProg > 100) currentProg = 100;
+            if (currentProg < 0) currentProg = 0;
+            Debug.Log(currentProg);
 
             Hashtable props = new Hashtable { { CODE_PROGRESS_KEY, currentProg } };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
@@ -108,7 +110,7 @@ public class PlayerStats : MonoBehaviourPun
         else
         {
             // Nếu không phải chủ phòng, gửi yêu cầu RPC hoặc tin nhắn (tạm thời ta bỏ qua bước phức tạp này, cứ để ai cũng ghi được cho đơn giản ở giai đoạn này)
-             float currentProg = 0;
+            float currentProg = 0;
             if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(CODE_PROGRESS_KEY))
             {
                 currentProg = (float)PhotonNetwork.CurrentRoom.CustomProperties[CODE_PROGRESS_KEY];
