@@ -8,7 +8,7 @@ public class PlayerStats : MonoBehaviourPun
     [Header("Cấu hình Chỉ số")]
     public float maxEnergy = 100f;
     public float maxSanity = 100f;
-    public float decayRate = 0.01f; // Tốc độ tụt chỉ số mỗi giây
+    public float decayRate = 1f; // Tốc độ tụt chỉ số mỗi giây
 
     [Header("Chỉ số hiện tại (Read Only)")]
     public float currentEnergy;

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Photon.Pun;
+using System.Collections;
 using System.Collections.Generic;
 
 public class MinigameFlow : MonoBehaviour
@@ -18,6 +19,7 @@ public class MinigameFlow : MonoBehaviour
     public float sliderSpeed = 2f;
     public int sequenceLength = 7;
     public float timeLimit = 2.0f;
+    public float stunDuration = 3.0f; // Thời gian bị đóng băng (3s)
 
     // Trạng thái
     private List<KeyCode> currentSequence = new List<KeyCode>();
@@ -29,22 +31,24 @@ public class MinigameFlow : MonoBehaviour
     
     // Biến kiểm soát trạng thái game
     private bool isGameActive = false; 
+    private bool isStunned = false; // Biến kiểm tra đang bị choáng
 
     public Sprite iconUp, iconDown, iconLeft, iconRight;
 
     void OnEnable()
     {
-        // 1. Reset trạng thái UI
+        // Reset toàn bộ trạng thái
         if(feedbackText) feedbackText.text = "";
         if(rhythmSlider) rhythmSlider.value = 0;
         if(timerSlider) timerSlider.value = 1;
         
-        // Xóa các mũi tên cũ nếu còn sót
         foreach (GameObject obj in arrowObjs) Destroy(obj);
         arrowObjs.Clear();
 
-        // 2. Hiện Hướng dẫn trước
         isGameActive = false;
+        isStunned = false; // Reset choáng
+
+        // Hiện Hướng dẫn
         if (tutorialPanel != null)
         {
             tutorialPanel.SetActive(true);
@@ -55,18 +59,18 @@ public class MinigameFlow : MonoBehaviour
         }
     }
 
-    // Hàm gọi từ nút Bắt Đầu
     public void StartActualGame()
     {
         if (tutorialPanel != null) tutorialPanel.SetActive(false);
         isGameActive = true;
-        GenerateSequence(); // Lúc này mới bắt đầu sinh mũi tên và tính giờ
+        isStunned = false;
+        GenerateSequence();
     }
 
     void Update()
     {
-        // Nếu đang hiện hướng dẫn thì dừng mọi logic
-        if (!isGameActive) return;
+        // Nếu đang hiện hướng dẫn HOẶC ĐANG BỊ CHOÁNG thì dừng mọi logic
+        if (!isGameActive || isStunned) return;
 
         HandleRhythmBar();
 
@@ -76,9 +80,10 @@ public class MinigameFlow : MonoBehaviour
             remainingTime -= Time.deltaTime;
             if(timerSlider != null) timerSlider.value = remainingTime / timeLimit;
 
+            // Hết giờ -> Bị phạt và Choáng
             if (remainingTime <= 0)
             {
-                HandleFailure("TOO SLOW! (-1%)");
+                StartCoroutine(StunSequence("QUÁ CHẬM! (-1%)"));
                 return;
             }
 
@@ -148,7 +153,8 @@ public class MinigameFlow : MonoBehaviour
             }
             else
             {
-                HandleFailure("WRONG KEY! (-1%)");
+                // Bấm sai -> Bị phạt và Choáng
+                StartCoroutine(StunSequence("SAI PHÍM! (-1%)"));
             }
         }
     }
@@ -167,28 +173,54 @@ public class MinigameFlow : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Space))
         {
             float val = rhythmSlider.value;
-            // 0.7 đến 0.75
+            // Perfect: 0.7 - 0.75
             if (val >= 0.7f && val <= 0.75f)
             {
-                ShowFeedback("PERFECT!! (+3%)", Color.cyan);
+                ShowFeedback("TUYỆT VỜI!! (+3%)", Color.cyan);
                 AddProgress(3f);
                 if(PlayerController.LocalPlayerInstance)
                     PlayerController.LocalPlayerInstance.GetComponent<PlayerStats>().RestoreSanity(5f);
             }
             else
             {
-                ShowFeedback("GOOD (+1%)", Color.green);
+                ShowFeedback("KHÁ TỐT (+1%)", Color.green);
                 AddProgress(1f);
             }
             GenerateSequence();
         }
     }
 
-    void HandleFailure(string reason)
+    // --- LOGIC CHOÁNG (STUN) MỚI ---
+    IEnumerator StunSequence(string reason)
     {
-        ShowFeedback(reason, Color.red);
+        isStunned = true; // Bật cờ choáng -> Update sẽ dừng xử lý input
+        
+        // Trừ điểm ngay lập tức
         AddProgress(-1f);
-        GenerateSequence();
+        
+        // Xóa sạch các mũi tên hiện tại để màn hình trống trơn (nhìn cho sợ)
+        foreach (GameObject obj in arrowObjs) Destroy(obj);
+        arrowObjs.Clear();
+        currentSequence.Clear();
+
+        // Đếm ngược 3 giây
+        float stunTimer = stunDuration;
+        while (stunTimer > 0)
+        {
+            if(feedbackText)
+            {
+                feedbackText.color = Color.red;
+                feedbackText.text = $"{reason}\nĐÓNG BĂNG: {stunTimer:0}s";
+            }
+            yield return new WaitForSeconds(1f);
+            stunTimer--;
+        }
+
+        // Hết giờ choáng
+        if(feedbackText) feedbackText.text = "";
+        isStunned = false; // Mở khóa
+        
+        GenerateSequence(); // Sinh chuỗi mới để chơi tiếp
     }
 
     void AddProgress(float amount)

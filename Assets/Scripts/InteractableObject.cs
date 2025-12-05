@@ -1,98 +1,121 @@
 using UnityEngine;
 using Photon.Pun;
-using TMPro;
 
-public enum InteractionType
-{
-    Code,
-    Cook,
-    FixWifi,
-    Sleep
-}
+public enum InteractionType { Code, Cook, FixWifi, Sleep }
 
 public class InteractableObject : MonoBehaviour
 {
     [Header("Cấu hình")]
     public InteractionType type;
-    public GameObject promptCanvas; // Nút E
+    public GameObject promptCanvas; 
     
     [Header("Danh sách Minigame")]
-    public GameObject panelHello; // Game 1 (Hello World)
-    public GameObject panelFlow;
+    public GameObject panelHello; // Game 1 (0-25%)
+    public GameObject panelFlow;  // Game 2 (25-50%)
+    public GameObject panelMech;  // Game 3 (50-75%)
+    public GameObject panelDecode;
 
     private bool isPlayerInside = false;
 
     void Start()
     {
         if (promptCanvas != null) promptCanvas.SetActive(false);
+        
+        // Đảm bảo tắt hết các panel lúc đầu
         if (panelHello != null) panelHello.SetActive(false);
         if (panelFlow != null) panelFlow.SetActive(false);
+        if (panelMech != null) panelMech.SetActive(false);
     }
 
     void Update()
     {
-        // Chỉ cho phép bấm E khi đang đứng trong vùng VÀ Minigame chưa bật
         if (isPlayerInside && Input.GetKeyDown(KeyCode.E))
         {
+            // Kiểm tra xem có bất kỳ panel nào đang mở không
+            bool isAnyPanelOpen = (panelHello != null && panelHello.activeSelf) || 
+                                  (panelFlow != null && panelFlow.activeSelf) ||
+                                  (panelMech != null && panelMech.activeSelf);
+
+            // Nếu đang mở bất kỳ cái nào -> KHÔNG LÀM GÌ CẢ (Chặn phím E)
+            if (isAnyPanelOpen) return; 
+
+            // Nếu chưa mở -> Thì mới mở
             OpenCorrectMinigame();
         }
     }
 
     void OpenCorrectMinigame()
     {
-        // Lấy tiến độ code từ mạng
         float currentProg = 0;
         if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("CodeProgress"))
         {
             currentProg = (float)PhotonNetwork.CurrentRoom.CustomProperties["CodeProgress"];
         }
 
-        // --- LOGIC CHUYỂN GAME THEO TIẾN ĐỘ ---
         if (type == InteractionType.Code)
         {
-            ActivatePanel(panelFlow);
+            ActivatePanel(panelDecode);
+            // --- LOGIC CHUYỂN GIAI ĐOẠN ---
             // if (currentProg < 25f)
             // {
-            //     ActivatePanel(panelHello); // Dưới 25%: Chơi Hello World
+            //     ActivatePanel(panelHello);
             // }
             // else if (currentProg < 50f)
             // {
-            //     ActivatePanel(panelFlow);  // 25% - 50%: Chơi In The Flow
+            //     ActivatePanel(panelFlow);
             // }
-            // else
+            // else if (currentProg < 75f) // GIAI ĐOẠN 3
             // {
-            //     Debug.Log("Giai đoạn 3 chưa làm!"); // Sau này làm tiếp
+            //     ActivatePanel(panelMech);
             // }
+            // else if (currentProg < 100f) ActivatePanel(panelDecode);
+            
+        }
+        else if (type == InteractionType.Cook)
+        {
+            // Mở game nấu ăn (sẽ làm sau)
         }
     }
-    
+
     void ActivatePanel(GameObject panel)
     {
         if (panel != null)
         {
             panel.SetActive(true);
             if (promptCanvas != null) promptCanvas.SetActive(false);
-            if (PlayerController.LocalPlayerInstance != null) PlayerController.LocalPlayerInstance.canMove = false;
+            
+            // Khóa di chuyển
+            if (PlayerController.LocalPlayerInstance != null) 
+                PlayerController.LocalPlayerInstance.canMove = false;
         }
     }
 
-    // --- HÀM ĐÓNG MINIGAME (Gán vào nút X) ---
+    // Hàm gọi từ nút X (Close Button) của TẤT CẢ các Panel
     public void CloseAllMinigames()
     {
-        if (panelHello != null) panelHello.SetActive(false);
-        if (panelFlow != null) panelFlow.SetActive(false);
+        if (panelHello) panelHello.SetActive(false);
+        if (panelFlow) panelFlow.SetActive(false);
+        if (panelMech) panelMech.SetActive(false); 
+        if (panelDecode) panelDecode.SetActive(false);
 
-        if (isPlayerInside && promptCanvas != null) promptCanvas.SetActive(true);
-        if (PlayerController.LocalPlayerInstance != null) PlayerController.LocalPlayerInstance.canMove = true;
+        // Mở lại nút E
+        if (isPlayerInside && promptCanvas) promptCanvas.SetActive(true);
+        
+        // Mở khóa di chuyển
+        if (PlayerController.LocalPlayerInstance) 
+            PlayerController.LocalPlayerInstance.canMove = true;
     }
 
-    // --- XỬ LÝ TRIGGER ---
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Player") && collision.GetComponent<PhotonView>().IsMine)
         {
             isPlayerInside = true;
-            bool isAnyPanelOpen = (panelHello != null && panelHello.activeSelf) || (panelFlow != null && panelFlow.activeSelf);
+            
+            bool isAnyPanelOpen = (panelHello != null && panelHello.activeSelf) || 
+                                  (panelFlow != null && panelFlow.activeSelf) ||
+                                  (panelMech != null && panelMech.activeSelf);
+
             if (!isAnyPanelOpen && promptCanvas != null) promptCanvas.SetActive(true);
         }
     }
@@ -103,7 +126,7 @@ public class InteractableObject : MonoBehaviour
         {
             isPlayerInside = false;
             if (promptCanvas != null) promptCanvas.SetActive(false);
-            CloseAllMinigames();
+            CloseAllMinigames(); 
         }
     }
 }
