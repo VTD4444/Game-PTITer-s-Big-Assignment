@@ -5140,7 +5140,7 @@ MonoBehaviour:
   allCharacterAnimators:
   - {fileID: 9100000, guid: e724f8017fe667f4a976ae6c53a8296a, type: 2}
   - {fileID: 22100000, guid: be9aba035bb371948a047f5b2aa63923, type: 2}
-  - {fileID: 0}
+  - {fileID: 22100000, guid: 6657222c1c6f3d14ba6fc31b155a8473, type: 2}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
