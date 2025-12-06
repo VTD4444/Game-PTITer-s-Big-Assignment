@@ -131,9 +131,9 @@ TextureImporter:
       name: 012_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 1
         y: 96
-        width: 21
+        width: 19
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -155,8 +155,8 @@ TextureImporter:
         serializedVersion: 2
         x: 21
         y: 96
-        width: 21
-        height: 32
+        width: 19
+        height: 30
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -175,10 +175,10 @@ TextureImporter:
       name: 012_2
       rect:
         serializedVersion: 2
-        x: 42
+        x: 41
         y: 96
-        width: 21
-        height: 32
+        width: 19
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -197,9 +197,9 @@ TextureImporter:
       name: 012_3
       rect:
         serializedVersion: 2
-        x: 0
+        x: 2
         y: 64
-        width: 21
+        width: 17
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -219,10 +219,10 @@ TextureImporter:
       name: 012_4
       rect:
         serializedVersion: 2
-        x: 21
+        x: 22
         y: 64
-        width: 21
-        height: 32
+        width: 17
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -243,7 +243,7 @@ TextureImporter:
         serializedVersion: 2
         x: 42
         y: 64
-        width: 21
+        width: 17
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -263,9 +263,9 @@ TextureImporter:
       name: 012_6
       rect:
         serializedVersion: 2
-        x: 0
+        x: 1
         y: 32
-        width: 21
+        width: 17
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -287,8 +287,8 @@ TextureImporter:
         serializedVersion: 2
         x: 21
         y: 32
-        width: 21
-        height: 32
+        width: 17
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -307,9 +307,9 @@ TextureImporter:
       name: 012_8
       rect:
         serializedVersion: 2
-        x: 42
+        x: 41
         y: 32
-        width: 21
+        width: 17
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -331,7 +331,7 @@ TextureImporter:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 21
+        width: 19
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
@@ -351,10 +351,10 @@ TextureImporter:
       name: 012_10
       rect:
         serializedVersion: 2
-        x: 21
+        x: 20
         y: 0
-        width: 21
-        height: 32
+        width: 19
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -373,9 +373,9 @@ TextureImporter:
       name: 012_11
       rect:
         serializedVersion: 2
-        x: 42
+        x: 40
         y: 0
-        width: 21
+        width: 19
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
