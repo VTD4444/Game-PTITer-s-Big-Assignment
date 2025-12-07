@@ -1,7 +1,7 @@
 using UnityEngine;
 using Photon.Pun;
 
-public enum InteractionType { Code, Cook, FixWifi, Sleep }
+public enum InteractionType { Code, Cook, FixWifi, Toilet, Fridge, Barista }
 
 public class InteractableObject : MonoBehaviour
 {
@@ -46,6 +46,19 @@ public class InteractableObject : MonoBehaviour
 
     void OpenCorrectMinigame()
     {
+        if (CookingManager.Instance.IsSick)
+        {
+            if (type == InteractionType.Toilet)
+            {
+                CookingManager.Instance.OpenToiletInteraction();
+            }
+            else
+            {
+                Debug.Log("Đau bụng quá! Phải tìm Toilet!");
+                // Có thể hiện thông báo nhỏ ở đây
+            }
+            return; // Chặn các game khác
+        }
         float currentProg = 0;
         if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("CodeProgress"))
         {
@@ -54,26 +67,32 @@ public class InteractableObject : MonoBehaviour
 
         if (type == InteractionType.Code)
         {
-            ActivatePanel(panelDecode);
             // --- LOGIC CHUYỂN GIAI ĐOẠN ---
-            // if (currentProg < 25f)
-            // {
-            //     ActivatePanel(panelHello);
-            // }
-            // else if (currentProg < 50f)
-            // {
-            //     ActivatePanel(panelFlow);
-            // }
-            // else if (currentProg < 75f) // GIAI ĐOẠN 3
-            // {
-            //     ActivatePanel(panelMech);
-            // }
-            // else if (currentProg < 100f) ActivatePanel(panelDecode);
-            
+            if (currentProg < 25f)
+            {
+                ActivatePanel(panelHello);
+            }
+            else if (currentProg < 50f)
+            {
+                ActivatePanel(panelFlow);
+            }
+            else if (currentProg < 75f) // GIAI ĐOẠN 3
+            {
+                ActivatePanel(panelMech);
+            }
+            else if (currentProg < 100f) ActivatePanel(panelDecode);
         }
         else if (type == InteractionType.Cook)
         {
-            // Mở game nấu ăn (sẽ làm sau)
+            CookingManager.Instance.OpenKitchenInteraction();
+        }
+        else if (type == InteractionType.Fridge)
+        {
+            CookingManager.Instance.OpenFridge();
+        }
+        else if (type == InteractionType.Barista)
+        {
+            BaristaManager.Instance.OpenBaristaGame();
         }
     }
 

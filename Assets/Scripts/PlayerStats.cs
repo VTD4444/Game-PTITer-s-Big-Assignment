@@ -8,7 +8,7 @@ public class PlayerStats : MonoBehaviourPun
     [Header("Cấu hình Chỉ số")]
     public float maxEnergy = 100f;
     public float maxSanity = 100f;
-    public float decayRate = 1f; // Tốc độ tụt chỉ số mỗi giây
+    public float decayRate = 0.05f; // Tốc độ tụt chỉ số mỗi giây
 
     [Header("Chỉ số hiện tại (Read Only)")]
     public float currentEnergy;
@@ -102,10 +102,15 @@ public class PlayerStats : MonoBehaviourPun
             currentProg += amount;
             if (currentProg > 100) currentProg = 100;
             if (currentProg < 0) currentProg = 0;
-            Debug.Log(currentProg);
 
             Hashtable props = new Hashtable { { CODE_PROGRESS_KEY, currentProg } };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+            
+            // --- ĐỔI NHẠC ---
+            if (currentProg < 25) AudioManager.Instance.PlayStageMusic(0);
+            else if (currentProg < 50) AudioManager.Instance.PlayStageMusic(1);
+            else if (currentProg < 75) AudioManager.Instance.PlayStageMusic(2);
+            else AudioManager.Instance.PlayStageMusic(3);
         }
         else
         {
@@ -118,6 +123,12 @@ public class PlayerStats : MonoBehaviourPun
             currentProg += amount;
              Hashtable props = new Hashtable { { CODE_PROGRESS_KEY, currentProg } };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+            
+            // --- ĐỔI NHẠC ---
+            if (currentProg < 25) AudioManager.Instance.PlayStageMusic(0);
+            else if (currentProg < 50) AudioManager.Instance.PlayStageMusic(1);
+            else if (currentProg < 75) AudioManager.Instance.PlayStageMusic(2);
+            else AudioManager.Instance.PlayStageMusic(3);
         }
     }
     
