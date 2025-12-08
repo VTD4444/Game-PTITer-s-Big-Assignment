@@ -37,10 +37,13 @@ public class InteractableObject : MonoBehaviour
             // Nếu là Phone: Chỉ hiện E khi có sự kiện (LoveMessManager.IsEventActive = true)
             if (type == InteractionType.Phone)
             {
-                if (LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive)
-                    promptCanvas.SetActive(true);
-                else
-                    promptCanvas.SetActive(false);
+                // [YÊU CẦU 2] Kiểm tra xem có phải Host (MasterClient) không?
+                if (PhotonNetwork.IsMasterClient)
+                {
+                    // Nếu chủ phòng -> Bật nút E
+                    if(promptCanvas) promptCanvas.SetActive(false);
+                    if(promptCanvas) promptCanvas.SetActive(true);
+                }
             }
             else 
             {
@@ -51,6 +54,11 @@ public class InteractableObject : MonoBehaviour
 
         if (isPlayerInside && Input.GetKeyDown(KeyCode.E))
         {
+            if (type == InteractionType.Phone && !PhotonNetwork.IsMasterClient)
+            {
+                Debug.Log("Bạn không phải chủ phòng, không thể nghe điện thoại!");
+                return;
+            }
             if (IsAnyPanelOpen()) return; // Đang mở bảng khác thì chặn
             OpenCorrectMinigame();
         }
@@ -146,13 +154,9 @@ public class InteractableObject : MonoBehaviour
             case InteractionType.Phone:
                 // Kiểm tra xem có đang diễn ra sự kiện tin nhắn không?
                 // Chúng ta sẽ cần một Manager quản lý trạng thái cái điện thoại (Xem Bước 2)
-                if (LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive)
+                if (panelLoveMess)
                 {
                     ActivatePanel(panelLoveMess);
-                }
-                else
-                {
-                    Debug.Log("Không có tin nhắn mới nào.");
                 }
                 break;
 

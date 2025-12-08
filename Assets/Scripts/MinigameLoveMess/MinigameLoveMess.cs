@@ -75,7 +75,7 @@ public class MinigameLoveMess : MonoBehaviour
             if (PlayerStats.Instance != null)
             {
                 // Trừ 5 Energy mỗi giây
-                PlayerStats.Instance.currentEnergy -= 5f * Time.deltaTime;
+                PlayerStats.LocalInstance.RestoreEnergy(-15f * Time.deltaTime);
                 
                 // Rung màn hình hoặc hiệu ứng visual nếu cần
             }
@@ -214,13 +214,14 @@ public class MinigameLoveMess : MonoBehaviour
         yield return new WaitForSecondsRealtime(2f); // Chờ 2s thời gian thực
         Time.timeScale = 1;
 
-        // 4. Trừ Sanity cực mạnh (50%)
-        if (PlayerStats.Instance != null)
+        // HÌNH PHẠT: Giảm 50 Sanity
+        if (PlayerStats.LocalInstance != null)
         {
-            PlayerStats.Instance.currentSanity = Mathf.Max(0, PlayerStats.Instance.currentSanity - 50f);
+            // Truyền số ÂM để trừ
+            PlayerStats.LocalInstance.RestoreSanity(-50f); 
+            Debug.Log("Đã trừ 50 Sanity!");
         }
 
-        // Đóng panel sau khi tận hưởng nỗi buồn 3s
         yield return new WaitForSeconds(3f);
         CloseMinigame();
     }
@@ -298,13 +299,14 @@ public class MinigameLoveMess : MonoBehaviour
         if(bgmSource && bgmVictory) { bgmSource.clip = bgmVictory; bgmSource.Play(); }
         if(sfxSource && sfxWin) sfxSource.PlayOneShot(sfxWin);
 
-        // Cộng Sanity
-        if (PlayerStats.Instance != null)
+        // PHẦN THƯỞNG: Tăng 30 Sanity
+        if (PlayerStats.LocalInstance != null)
         {
-            PlayerStats.Instance.RestoreSanity(30f);
+            // Truyền số DƯƠNG để cộng
+            PlayerStats.LocalInstance.RestoreSanity(30f); 
+            Debug.Log("Đã hồi 30 Sanity!");
         }
 
-        // Tự động đóng sau khi nghe nhạc chiến thắng
         StartCoroutine(CloseDelay(4f));
     }
 
@@ -315,7 +317,7 @@ public class MinigameLoveMess : MonoBehaviour
         CloseMinigame();
     }
 
-    void CloseMinigame()
+    public void CloseMinigame()
     {
         // Gọi hàm CloseAllMinigames từ script InteractableObject hoặc tắt gameObject này
         // Vì script này nằm trên Panel, ta chỉ cần tắt nó đi

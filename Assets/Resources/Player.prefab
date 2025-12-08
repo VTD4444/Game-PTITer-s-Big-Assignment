@@ -294,6 +294,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   maxEnergy: 100
   maxSanity: 100
-  decayRate: 0.05
+  decayRate: 0.1
   currentEnergy: 0
   currentSanity: 0

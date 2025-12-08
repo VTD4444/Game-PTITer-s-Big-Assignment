@@ -5533,9 +5533,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 920353842}
-        m_TargetAssemblyTypeName: CookingManager, Assembly-CSharp
-        m_MethodName: CloseAllPanels
+      - m_Target: {fileID: 1132164713}
+        m_TargetAssemblyTypeName: MinigameLoveMess, Assembly-CSharp
+        m_MethodName: CloseMinigame
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

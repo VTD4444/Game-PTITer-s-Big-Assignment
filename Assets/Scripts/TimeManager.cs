@@ -80,7 +80,7 @@ public class TimeManager : MonoBehaviourPunCallbacks
         // 3. [NEW] Love Message (0h - 2h sáng) -> 24.0 đến 26.0
         // Lưu ý: 20h bắt đầu -> 24h là mốc 24.0, 2h sáng là mốc 26.0
         float rndLoveMess = Random.Range(24.0f, 26.0f);
-        rndLoveMess = startHour + 0.02f;
+        // rndLoveMess = startHour + 0.02f;
 
         Hashtable props = new Hashtable
         {

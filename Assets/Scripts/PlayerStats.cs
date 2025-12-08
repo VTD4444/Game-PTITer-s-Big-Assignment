@@ -5,10 +5,12 @@ using Hashtable = ExitGames.Client.Photon.Hashtable; // Để lưu Code Progress
 
 public class PlayerStats : MonoBehaviourPun
 {
+    public static PlayerStats LocalInstance;
+    
     [Header("Cấu hình Chỉ số")]
     public float maxEnergy = 100f;
     public float maxSanity = 100f;
-    public float decayRate = 0.05f; // Tốc độ tụt chỉ số mỗi giây
+    public float decayRate = 0.5f; // Tốc độ tụt chỉ số mỗi giây
 
     [Header("Chỉ số hiện tại (Read Only)")]
     public float currentEnergy;
@@ -22,6 +24,15 @@ public class PlayerStats : MonoBehaviourPun
     // Key để lưu trữ Tiến độ Code trên mạng
     private const string CODE_PROGRESS_KEY = "CodeProgress";
     public static PlayerStats Instance;
+    
+    void Awake()
+    {
+        // Chỉ gán Instance nếu đây là nhân vật do mình điều khiển
+        if (photonView.IsMine)
+        {
+            LocalInstance = this;
+        }
+    }
 
     void Start()
     {
