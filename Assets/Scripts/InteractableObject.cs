@@ -1,7 +1,7 @@
 using UnityEngine;
 using Photon.Pun;
 
-public enum InteractionType { Code, Cook, FixWifi, Toilet, Fridge, Barista }
+public enum InteractionType { Code, Cook, FixWifi, Toilet, Fridge, Barista, Phone }
 
 public class InteractableObject : MonoBehaviour
 {
@@ -14,6 +14,7 @@ public class InteractableObject : MonoBehaviour
     public GameObject panelFlow;  // Game 2 (25-50%)
     public GameObject panelMech;  // Game 3 (50-75%)
     public GameObject panelDecode;
+    public GameObject panelLoveMess;
 
     private bool isPlayerInside = false;
 
@@ -29,72 +30,138 @@ public class InteractableObject : MonoBehaviour
 
     void Update()
     {
+        // Chỉ hiện Prompt E khi ở gần và chưa mở game nào
+        if (isPlayerInside && promptCanvas != null)
+        {
+            // Logic ẩn hiện nút E thông minh hơn:
+            // Nếu là Phone: Chỉ hiện E khi có sự kiện (LoveMessManager.IsEventActive = true)
+            if (type == InteractionType.Phone)
+            {
+                if (LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive)
+                    promptCanvas.SetActive(true);
+                else
+                    promptCanvas.SetActive(false);
+            }
+            else 
+            {
+                // Các đồ vật khác hiện E bình thường
+                promptCanvas.SetActive(true);
+            }
+        }
+
         if (isPlayerInside && Input.GetKeyDown(KeyCode.E))
         {
-            // Kiểm tra xem có bất kỳ panel nào đang mở không
-            bool isAnyPanelOpen = (panelHello != null && panelHello.activeSelf) || 
-                                  (panelFlow != null && panelFlow.activeSelf) ||
-                                  (panelMech != null && panelMech.activeSelf);
-
-            // Nếu đang mở bất kỳ cái nào -> KHÔNG LÀM GÌ CẢ (Chặn phím E)
-            if (isAnyPanelOpen) return; 
-
-            // Nếu chưa mở -> Thì mới mở
+            if (IsAnyPanelOpen()) return; // Đang mở bảng khác thì chặn
             OpenCorrectMinigame();
         }
     }
 
+    bool IsAnyPanelOpen()
+    {
+        return (panelHello && panelHello.activeSelf) || 
+               (panelFlow && panelFlow.activeSelf) ||
+               (panelMech && panelMech.activeSelf) ||
+               (panelLoveMess && panelLoveMess.activeSelf);
+    }
+
     void OpenCorrectMinigame()
     {
+        // --- KIỂM TRA BỊ SICK ---
         if (CookingManager.Instance.IsSick)
         {
-            if (type == InteractionType.Toilet)
+            switch (type)
             {
-                CookingManager.Instance.OpenToiletInteraction();
+                case InteractionType.Toilet:
+                    CookingManager.Instance.OpenToiletInteraction();
+                    break;
+
+                default:
+                    Debug.Log("Đau bụng quá! Phải tìm Toilet!");
+                    break;
             }
-            else
-            {
-                Debug.Log("Đau bụng quá! Phải tìm Toilet!");
-                // Có thể hiện thông báo nhỏ ở đây
-            }
-            return; // Chặn các game khác
+            return;
         }
+
+        // --- LẤY CODE PROGRESS ---
         float currentProg = 0;
-        if (PhotonNetwork.CurrentRoom != null && PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("CodeProgress"))
+        if (PhotonNetwork.CurrentRoom != null &&
+            PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey("CodeProgress"))
         {
             currentProg = (float)PhotonNetwork.CurrentRoom.CustomProperties["CodeProgress"];
         }
 
-        if (type == InteractionType.Code)
+        // --- SWITCH THEO LOẠI TƯƠNG TÁC ---
+        switch (type)
         {
-            // --- LOGIC CHUYỂN GIAI ĐOẠN ---
-            if (currentProg < 25f)
-            {
-                ActivatePanel(panelHello);
-            }
-            else if (currentProg < 50f)
-            {
-                ActivatePanel(panelFlow);
-            }
-            else if (currentProg < 75f) // GIAI ĐOẠN 3
-            {
-                ActivatePanel(panelMech);
-            }
-            else if (currentProg < 100f) ActivatePanel(panelDecode);
-        }
-        else if (type == InteractionType.Cook)
-        {
-            CookingManager.Instance.OpenKitchenInteraction();
-        }
-        else if (type == InteractionType.Fridge)
-        {
-            CookingManager.Instance.OpenFridge();
-        }
-        else if (type == InteractionType.Barista)
-        {
-            BaristaManager.Instance.OpenBaristaGame();
+            case InteractionType.Code:
+                if (WifiManager.Instance != null && WifiManager.Instance.IsWifiBroken)
+                {
+                    Debug.Log("Wifi đang hỏng! Không thể code!");
+                    WifiManager.Instance.OpenPCPanel(); // Bật màn hình báo lỗi thay vì game Code
+                    return; // Dừng lại, không mở minigame code nữa
+                }
+                // Chuyển 4 giai đoạn bằng if (vì nó phụ thuộc giá trị float)
+                if (currentProg < 25f)
+                {
+                    ActivatePanel(panelHello);
+                }
+                else if (currentProg < 50f)
+                {
+                    ActivatePanel(panelFlow);
+                }
+                else if (currentProg < 75f)
+                {
+                    ActivatePanel(panelMech);
+                }
+                else if (currentProg < 100f)
+                {
+                    ActivatePanel(panelDecode);
+                }
+                break;
+
+            case InteractionType.Cook:
+                CookingManager.Instance.OpenKitchenInteraction();
+                break;
+
+            case InteractionType.Fridge:
+                CookingManager.Instance.OpenFridge();
+                break;
+
+            case InteractionType.Barista:
+                BaristaManager.Instance.OpenBaristaGame();
+                break;
+
+            case InteractionType.Toilet:
+                // Trường hợp này chỉ chạy khi không bị Sick
+                CookingManager.Instance.OpenToiletInteraction();
+                break;
+            
+            case InteractionType.FixWifi:
+                // Chỉ mở được nếu Wifi đang hỏng
+                if (WifiManager.Instance.IsWifiBroken)
+                {
+                    WifiManager.Instance.OpenRouterPanel();
+                }
+                break;
+            case InteractionType.Phone:
+                // Kiểm tra xem có đang diễn ra sự kiện tin nhắn không?
+                // Chúng ta sẽ cần một Manager quản lý trạng thái cái điện thoại (Xem Bước 2)
+                if (LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive)
+                {
+                    ActivatePanel(panelLoveMess);
+                }
+                else
+                {
+                    Debug.Log("Không có tin nhắn mới nào.");
+                }
+                break;
+
+            default:
+                Debug.Log("Không có minigame tương ứng với InteractionType này.");
+                break;
         }
     }
+
 
     void ActivatePanel(GameObject panel)
     {
@@ -112,10 +179,12 @@ public class InteractableObject : MonoBehaviour
     // Hàm gọi từ nút X (Close Button) của TẤT CẢ các Panel
     public void CloseAllMinigames()
     {
+        Debug.Log("Closing all Minigames");
         if (panelHello) panelHello.SetActive(false);
         if (panelFlow) panelFlow.SetActive(false);
         if (panelMech) panelMech.SetActive(false); 
         if (panelDecode) panelDecode.SetActive(false);
+        if (panelLoveMess) panelLoveMess.SetActive(false);
 
         // Mở lại nút E
         if (isPlayerInside && promptCanvas) promptCanvas.SetActive(true);
@@ -147,5 +216,19 @@ public class InteractableObject : MonoBehaviour
             if (promptCanvas != null) promptCanvas.SetActive(false);
             CloseAllMinigames(); 
         }
+    }
+    
+    // Hàm kiểm tra xem người chơi có đang mở bất kỳ minigame code nào không
+    public bool IsAnyCodeMinigameActive()
+    {
+        if (type != InteractionType.Code) return false;
+
+        // Kiểm tra trạng thái active của tất cả các panel minigame
+        if (panelHello && panelHello.activeSelf) return true;
+        if (panelFlow && panelFlow.activeSelf) return true;
+        if (panelMech && panelMech.activeSelf) return true;
+        if (panelDecode && panelDecode.activeSelf) return true;
+
+        return false;
     }
 }

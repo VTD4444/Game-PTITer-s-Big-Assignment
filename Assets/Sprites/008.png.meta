@@ -285,10 +285,10 @@ TextureImporter:
       name: 008_7
       rect:
         serializedVersion: 2
-        x: 21
+        x: 22
         y: 32
-        width: 16
-        height: 32
+        width: 15
+        height: 31
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -309,7 +309,7 @@ TextureImporter:
         serializedVersion: 2
         x: 42
         y: 32
-        width: 16
+        width: 15
         height: 32
       alignment: 0
       pivot: {x: 0.5, y: 0.5}

@@ -21,6 +21,7 @@ public class PlayerStats : MonoBehaviourPun
 
     // Key để lưu trữ Tiến độ Code trên mạng
     private const string CODE_PROGRESS_KEY = "CodeProgress";
+    public static PlayerStats Instance;
 
     void Start()
     {
