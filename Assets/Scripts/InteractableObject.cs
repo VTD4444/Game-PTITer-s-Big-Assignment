@@ -109,44 +109,43 @@ public class InteractableObject : MonoBehaviour
         switch (type)
         {
             case InteractionType.Code:
-                // if (WifiManager.Instance != null && WifiManager.Instance.IsWifiBroken)
-                // {
-                //     Debug.Log("Wifi đang hỏng! Không thể code!");
-                //     WifiManager.Instance.OpenPCPanel(); // Bật màn hình báo lỗi thay vì game Code
-                //     return; // Dừng lại, không mở minigame code nữa
-                // }
-                // // 1. Tính xem với % hiện tại thì đáng lẽ ở Stage mấy?
-                // int calculatedStage = 0;
-                // if (currentProg >= 75f) calculatedStage = 3;      // Decode
-                // else if (currentProg >= 50f) calculatedStage = 2; // Mech
-                // else if (currentProg >= 25f) calculatedStage = 1; // Flow
-                // else calculatedStage = 0;                         // Hello
-                //
-                // // 2. Lấy Stage cao nhất đã từng đạt được từ Server
-                // int maxStageReached = 0;
-                // if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(MAX_CODE_STAGE_KEY))
-                // {
-                //     maxStageReached = (int)PhotonNetwork.CurrentRoom.CustomProperties[MAX_CODE_STAGE_KEY];
-                // }
-                //
-                // // 3. So sánh: Nếu % hiện tại mở khóa được stage cao hơn mốc cũ -> Cập nhật mốc mới
-                // if (calculatedStage > maxStageReached)
-                // {
-                //     maxStageReached = calculatedStage;
-                //     
-                //     // Lưu mốc mới lên Server để không bao giờ bị tụt nữa
-                //     Hashtable props = new Hashtable { { MAX_CODE_STAGE_KEY, maxStageReached } };
-                //     PhotonNetwork.CurrentRoom.SetCustomProperties(props);
-                // }
-                //
-                // // 4. Mở game dựa theo mốc cao nhất (maxStageReached) thay vì % hiện tại
-                // Debug.Log($"Mở Minigame Code. Progress: {currentProg}%. Stage Unlock: {maxStageReached}");
-                //
-                // if (maxStageReached == 0) ActivatePanel(panelHello);
-                // else if (maxStageReached == 1) ActivatePanel(panelFlow);
-                // else if (maxStageReached == 2) ActivatePanel(panelMech);
-                // else ActivatePanel(panelDecode);
-                ActivatePanel(panelDecode);
+                if (WifiManager.Instance != null && WifiManager.Instance.IsWifiBroken)
+                {
+                    Debug.Log("Wifi đang hỏng! Không thể code!");
+                    WifiManager.Instance.OpenPCPanel(); // Bật màn hình báo lỗi thay vì game Code
+                    return; // Dừng lại, không mở minigame code nữa
+                }
+                // 1. Tính xem với % hiện tại thì đáng lẽ ở Stage mấy?
+                int calculatedStage = 0;
+                if (currentProg >= 75f) calculatedStage = 3;      // Decode
+                else if (currentProg >= 50f) calculatedStage = 2; // Mech
+                else if (currentProg >= 25f) calculatedStage = 1; // Flow
+                else calculatedStage = 0;                         // Hello
+
+                // 2. Lấy Stage cao nhất đã từng đạt được từ Server
+                int maxStageReached = 0;
+                if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(MAX_CODE_STAGE_KEY))
+                {
+                    maxStageReached = (int)PhotonNetwork.CurrentRoom.CustomProperties[MAX_CODE_STAGE_KEY];
+                }
+
+                // 3. So sánh: Nếu % hiện tại mở khóa được stage cao hơn mốc cũ -> Cập nhật mốc mới
+                if (calculatedStage > maxStageReached)
+                {
+                    maxStageReached = calculatedStage;
+                    
+                    // Lưu mốc mới lên Server để không bao giờ bị tụt nữa
+                    Hashtable props = new Hashtable { { MAX_CODE_STAGE_KEY, maxStageReached } };
+                    PhotonNetwork.CurrentRoom.SetCustomProperties(props);
+                }
+
+                // 4. Mở game dựa theo mốc cao nhất (maxStageReached) thay vì % hiện tại
+                Debug.Log($"Mở Minigame Code. Progress: {currentProg}%. Stage Unlock: {maxStageReached}");
+
+                if (maxStageReached == 0) ActivatePanel(panelHello);
+                else if (maxStageReached == 1) ActivatePanel(panelFlow);
+                else if (maxStageReached == 2) ActivatePanel(panelMech);
+                else ActivatePanel(panelDecode);
                 break;
 
             case InteractionType.Cook:
