@@ -190,6 +190,7 @@ public class MinigameDecode : MonoBehaviourPunCallbacks
             targetCode[i] = digits[r];
             digits.RemoveAt(r);
         }
+        Debug.Log(targetCode);
         photonView.RPC("SyncCodeRPC", RpcTarget.All, targetCode);
     }
 

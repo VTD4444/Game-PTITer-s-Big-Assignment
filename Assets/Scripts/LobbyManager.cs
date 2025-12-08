@@ -18,16 +18,30 @@ public class LobbyManager : MonoBehaviourPunCallbacks
     void Start()
     {
         SetInteractable(false);
-        ShowMainPanel(); // Mặc định hiện Main Panel lúc đầu
+        ShowMainPanel(); 
 
+        // --- ĐOẠN CODE CẦN SỬA ---
+        
+        // Trường hợp 1: Chưa kết nối tí nào (Mới bật game)
         if (!PhotonNetwork.IsConnected)
         {
             statusText.text = "Đang kết nối Server...";
             PhotonNetwork.ConnectUsingSettings();
         }
-        else
+        // Trường hợp 2: Đã kết nối VÀ Đã sẵn sàng (ConnectedAndReady)
+        // Đây là lúc an toàn để gọi JoinLobby
+        else if (PhotonNetwork.IsConnectedAndReady)
         {
-             PhotonNetwork.JoinLobby();
+            PhotonNetwork.JoinLobby();
+        }
+        // Trường hợp 3: Đã kết nối nhưng chưa Ready (Đang chuyển Server - ConnectingToMasterServer)
+        // Đây là trường hợp gây lỗi của bạn. 
+        // Chúng ta KHÔNG LÀM GÌ CẢ ở đây. Hãy để Photon tự chạy xong việc của nó.
+        // Khi nó chạy xong, nó sẽ tự gọi hàm OnConnectedToMaster ở dưới -> Lúc đó mới JoinLobby.
+        else 
+        {
+            statusText.text = "Đang đồng bộ dữ liệu...";
+            // Chờ đợi... Callback OnConnectedToMaster sẽ lo phần còn lại.
         }
     }
 
