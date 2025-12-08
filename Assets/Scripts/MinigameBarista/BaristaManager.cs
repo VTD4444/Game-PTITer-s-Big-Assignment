@@ -195,7 +195,7 @@ public class BaristaManager : MonoBehaviour
             if (PlayerController.LocalPlayerInstance)
             {
                 var stats = PlayerController.LocalPlayerInstance.GetComponent<PlayerStats>();
-                stats.RestoreSanity(50f); // Hồi 50% Sanity
+                stats.RestoreSanity(70f); // Hồi 70% Sanity
             }
         }
         else

@@ -4,6 +4,7 @@ using Photon.Pun;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using System.Linq;
 
 public enum Ingredient 
 { 
@@ -49,7 +50,6 @@ public class CookingManager : MonoBehaviourPunCallbacks
 
     [Header("Recipe UI")]
     public TextMeshProUGUI textRecipe1;
-    public TextMeshProUGUI textRecipe2;
 
     [Header("World UI")]
     public GameObject toiletWorldCanvas; // Canvas trên đầu Toilet (chứa Text + Slider)
@@ -65,8 +65,8 @@ public class CookingManager : MonoBehaviourPunCallbacks
 
     // --- DATA ---
     // Lưu 2 công thức mục tiêu (mỗi công thức là 1 list nguyên liệu)
-    private List<List<Ingredient>> targetRecipes = new List<List<Ingredient>>();
-    private List<string> targetRecipeNames = new List<string>();
+    private List<Ingredient> currentTargetRecipe = new List<Ingredient>();
+    private string currentRecipeName = "";
 
     // Đồ đang cầm trên người (Giỏ hàng)
     private List<Ingredient> playerInventory = new List<Ingredient>();
@@ -145,19 +145,80 @@ public class CookingManager : MonoBehaviourPunCallbacks
     }
 
     // --- LỰA CHỌN 1: XEM MÓN ĂN ---
+    // --- 1. MỞ PANEL & SINH CÔNG THỨC MỚI ---
     public void OnClickViewRecipes()
     {
-        // Sinh 2 món mới (Nếu chưa có hoặc muốn reset)
-        if(targetRecipes.Count == 0) GenerateTwoRecipes();
+        // Chỉ Master Client mới được quyền sinh công thức mới để tránh xung đột
+        if (PhotonNetwork.IsMasterClient)
+        {
+            GenerateAndSyncRecipe();
+        }
+        // Nếu là Client, bấm vào nút này sẽ phải đợi Master gửi công thức về (RPC)
+        // Tuy nhiên để UI mượt mà, ta có thể mở panel lên trước, và khi nhận RPC thì cập nhật text.
         
         panelSelection.SetActive(false);
         panelRecipes.SetActive(true);
         
-        // Hiển thị
-        textRecipe1.text = "MÓN 1:\n" + targetRecipeNames[0];
-        textRecipe2.text = "MÓN 2:\n" + targetRecipeNames[1];
+        // Hiển thị tạm thời (hoặc hiển thị cái cũ nếu chưa nhận được mới)
+        UpdateRecipeUI();
 
         StartCoroutine(HideRecipesAfterTime(3f));
+    }
+    
+    // Hàm sinh và gửi công thức (Chỉ chạy ở Master)
+    void GenerateAndSyncRecipe()
+    {
+        // 1. Sinh công thức ngẫu nhiên
+        List<Ingredient> newRecipe = new List<Ingredient>();
+        string name = "Mì";
+        newRecipe.Add(Ingredient.Mi); // Luôn có mì
+
+        List<Ingredient> sideDishes = new List<Ingredient>();
+        for (int i = 1; i <= 12; i++) sideDishes.Add((Ingredient)i);
+
+        // Random 3 món phụ
+        for(int j=0; j<3; j++)
+        {
+            if(sideDishes.Count > 0)
+            {
+                int idx = Random.Range(0, sideDishes.Count);
+                Ingredient item = sideDishes[idx];
+                newRecipe.Add(item);
+                name += ", " + GetIngredientName(item);
+                sideDishes.RemoveAt(idx);
+            }
+        }
+
+        // 2. Gửi qua mạng cho tất cả mọi người (bao gồm cả chính mình)
+        // Photon RPC không gửi được List<Enum>, nên ta chuyển sang int[]
+        int[] recipeArray = newRecipe.Select(x => (int)x).ToArray();
+        
+        photonView.RPC("RpcSyncRecipe", RpcTarget.All, recipeArray, name);
+    }
+
+    [PunRPC]
+    void RpcSyncRecipe(int[] recipeData, string recipeName)
+    {
+        // Client nhận dữ liệu và lưu vào biến cục bộ
+        currentTargetRecipe.Clear();
+        foreach (int id in recipeData) currentTargetRecipe.Add((Ingredient)id);
+        
+        currentRecipeName = recipeName;
+        
+        // Cập nhật UI nếu đang mở
+        UpdateRecipeUI();
+        Debug.Log("Đã nhận công thức mới: " + recipeName);
+    }
+    
+    void UpdateRecipeUI()
+    {
+        if (textRecipe1) 
+        {
+            if (currentTargetRecipe.Count > 0)
+                textRecipe1.text = "CÔNG THỨC MỚI:\n" + currentRecipeName;
+            else
+                textRecipe1.text = "Đang chờ đầu bếp trưởng...";
+        }
     }
 
     IEnumerator HideRecipesAfterTime(float time)
@@ -179,22 +240,17 @@ public class CookingManager : MonoBehaviourPunCallbacks
         panelCooking.SetActive(true);
         if(PlayerController.LocalPlayerInstance) PlayerController.LocalPlayerInstance.canMove = false;
 
-        // --- SỬA LỖI CRASH Ở ĐÂY ---
-        // Nếu chưa có đơn hàng (do người chơi quên xem), tự động tạo mới ngay
-        if (targetRecipes == null || targetRecipes.Count == 0)
+        // Nếu chưa có công thức nào (lần đầu vào game chưa ai bấm xem), Master tự sinh cái đầu tiên
+        if (PhotonNetwork.IsMasterClient && currentTargetRecipe.Count == 0)
         {
-            GenerateTwoRecipes();
+            GenerateAndSyncRecipe();
         }
-        // ---------------------------
 
         RenderIngredients(playerInventory, playerInventoryContainer, false);
-        // RenderIngredients(potIngredients, potContainer, false); // Đã bỏ theo yêu cầu cũ
+        // RenderIngredients(potIngredients, potContainer, true); // (Đã có trong hàm RPC AddToPot)
 
         if (!isCooking)
         {
-            potIngredients.Clear();
-            foreach(Transform child in potContainer) Destroy(child.gameObject);
-            cookTimer = 0;
             if(textCookingStatus) textCookingStatus.text = "KÉO NGUYÊN LIỆU VÀO NỒI";
             if(cookingSlider) cookingSlider.value = 0;
         }
@@ -246,52 +302,44 @@ public class CookingManager : MonoBehaviourPunCallbacks
         // Truyền ActorNumber để biết ai là người bấm (người đó được cộng điểm)
         photonView.RPC("RpcFinishCooking", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber);
     }
-
+    
     [PunRPC]
     void RpcFinishCooking(int actorWhoClicked)
     {
         isCooking = false; 
         
-        // ... (Logic kiểm tra kết quả giữ nguyên) ...
-        if (targetRecipes.Count == 0) GenerateTwoRecipes(); 
+        // Kiểm tra kết quả
         bool timePerfect = (cookTimer >= 30f && cookTimer <= 40f);
-        bool recipeMatch = CheckRecipeMatch(potIngredients, targetRecipes[0]) || 
-                           CheckRecipeMatch(potIngredients, targetRecipes[1]);
+        
+        // [QUAN TRỌNG] So sánh với currentTargetRecipe duy nhất
+        bool recipeMatch = CheckRecipeMatch(potIngredients, currentTargetRecipe);
         
         if (potAudioSource) potAudioSource.Stop();
-
-        // --- SỬA ĐỔI ---
-        // Gọi đóng Panel cho TẤT CẢ mọi người.
-        // Ai đang mở bếp sẽ tự động đóng lại và được mở khóa di chuyển.
         CloseAllPanels(); 
 
         if (timePerfect && recipeMatch)
         {
-            // THÀNH CÔNG
             AudioManager.Instance.PlayWin();
             
-            // Chỉ cộng điểm cho người bấm (để tránh cộng đôi)
+            // HỒI MÁU CHO CẢ 2 NGƯỜI (Hoặc chỉ người bấm, tùy bạn chọn)
+            // Yêu cầu của bạn: "dù cho người nào ăn cũng sẽ khỏe" -> Ai bấm nút ăn thì người đó được hồi.
             if (PhotonNetwork.LocalPlayer.ActorNumber == actorWhoClicked)
             {
                 if(PlayerController.LocalPlayerInstance)
                 {
                     var stats = PlayerController.LocalPlayerInstance.GetComponent<PlayerStats>();
-                    stats.RestoreEnergy(50f);
-                    stats.RestoreSanity(10f);
+                    // [SỬA ĐỔI] Hồi 70% Energy
+                    stats.RestoreEnergy(70f); 
+                    stats.RestoreSanity(10f); // Bonus Sanity
                 }
             }
         }
         else
         {
-            // THẤT BẠI
             AudioManager.Instance.PlayFail();
-            
-            // Chỉ người bấm bị đau bụng
             if (PhotonNetwork.LocalPlayer.ActorNumber == actorWhoClicked)
             {
                 TriggerSickness();
-                // Lưu ý: TriggerSickness chỉ hiện chữ "Đau bụng", 
-                // còn CloseAllPanels ở trên đã lo việc mở khóa di chuyển rồi.
             }
         }
 
@@ -480,43 +528,6 @@ public class CookingManager : MonoBehaviourPunCallbacks
         if(toiletWorldCanvas) toiletWorldCanvas.SetActive(false);
         if(currentHeadText) Destroy(currentHeadText); // Xóa chữ trên đầu
         if(PlayerController.LocalPlayerInstance) PlayerController.LocalPlayerInstance.canMove = true;
-    }
-
-    // --- HÀM SINH CÔNG THỨC (LOGIC GIỮ NGUYÊN) ---
-    void GenerateTwoRecipes()
-    {
-        targetRecipes.Clear();
-        targetRecipeNames.Clear();
-
-        // Danh sách nguyên liệu phụ (Trừ Mì ra)
-        List<Ingredient> sideDishes = new List<Ingredient>();
-        for (int i = 1; i <= 12; i++) sideDishes.Add((Ingredient)i);
-
-        for(int i=0; i<2; i++)
-        {
-            List<Ingredient> r = new List<Ingredient>();
-            string name = "Mì";
-            
-            // 1. Luôn có Mì
-            r.Add(Ingredient.Mi);
-
-            // 2. Random 3 món phụ không trùng nhau
-            List<Ingredient> pool = new List<Ingredient>(sideDishes);
-            for(int j=0; j<3; j++)
-            {
-                if(pool.Count > 0)
-                {
-                    int idx = Random.Range(0, pool.Count);
-                    Ingredient item = pool[idx];
-                    r.Add(item);
-                    name += ", " + GetIngredientName(item);
-                    pool.RemoveAt(idx);
-                }
-            }
-            
-            targetRecipes.Add(r);
-            targetRecipeNames.Add(name);
-        }
     }
 
     public void CloseAllPanels()

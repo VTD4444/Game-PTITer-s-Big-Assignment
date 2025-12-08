@@ -7,6 +7,9 @@ using UnityEngine.SceneManagement;
 public class GameManager_Main : MonoBehaviourPunCallbacks
 {
     public static GameManager_Main Instance;
+    
+    [Header("Tutorial UI")]
+    public GameObject panelTutorial;
 
     [Header("Config")]
     public Transform[] spawnPoints; 
@@ -37,6 +40,45 @@ public class GameManager_Main : MonoBehaviourPunCallbacks
         
         // Ẩn hết panel kết quả lúc đầu
         CloseAllResultPanels();
+        ShowTutorial();
+    }
+    
+    // --- HÀM XỬ LÝ TUTORIAL ---
+    void ShowTutorial()
+    {
+        if (panelTutorial != null)
+        {
+            panelTutorial.SetActive(true);
+            
+            // Khóa di chuyển của nhân vật ngay khi vào game
+            // Lưu ý: Cần đợi 1 chút để Player được sinh ra rồi mới khóa được
+            StartCoroutine(LockMovementRoutine());
+        }
+    }
+    
+    // Coroutine để đảm bảo tìm thấy Player rồi mới khóa
+    System.Collections.IEnumerator LockMovementRoutine()
+    {
+        yield return new WaitForSeconds(0.1f); // Chờ Player Spawn xong
+        if (PlayerController.LocalPlayerInstance != null)
+        {
+            PlayerController.LocalPlayerInstance.canMove = false;
+        }
+    }
+    
+    // [MỚI] GẮN HÀM NÀY VÀO NÚT "ĐÃ HIỂU"
+    public void OnClickCloseTutorial()
+    {
+        if (panelTutorial != null)
+        {
+            panelTutorial.SetActive(false);
+        }
+
+        // Mở khóa di chuyển để bắt đầu chơi
+        if (PlayerController.LocalPlayerInstance != null)
+        {
+            PlayerController.LocalPlayerInstance.canMove = true;
+        }
     }
 
     void SpawnPlayer()
