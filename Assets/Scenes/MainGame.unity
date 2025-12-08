@@ -11361,7 +11361,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91bdc1635d3d99f45a22bfdf50119368, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManager_Main
-  panelTutorial: {fileID: 0}
+  panelTutorial: {fileID: 1359094271}
   spawnPoints:
   - {fileID: 354402948}
   - {fileID: 1973320512}
