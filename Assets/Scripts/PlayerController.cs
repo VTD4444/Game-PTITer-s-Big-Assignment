@@ -46,6 +46,9 @@ public class PlayerController : MonoBehaviourPun
     {
         if (photonView.IsMine)
         {
+            // 1. Nhận Input
+            float x = Input.GetAxis("Horizontal");
+            float y = Input.GetAxis("Vertical");
             // --- SỬA ĐỔI: Chỉ xử lý input nếu được phép (canMove == true) ---
             if (canMove)
             {
@@ -57,6 +60,10 @@ public class PlayerController : MonoBehaviourPun
                 movement = Vector2.zero;
                 if (anim != null) anim.SetBool("IsMoving", false);
             }
+            bool isMoving = (x != 0 || y != 0);
+            anim.SetBool("IsMoving", isMoving);
+            anim.SetFloat("InputX", x);
+            anim.SetFloat("InputY", y);
         }
     }
 
