@@ -241,7 +241,7 @@ public class CookingManager : MonoBehaviourPunCallbacks
         if(PlayerController.LocalPlayerInstance) PlayerController.LocalPlayerInstance.canMove = false;
 
         // Nếu chưa có công thức nào (lần đầu vào game chưa ai bấm xem), Master tự sinh cái đầu tiên
-        if (PhotonNetwork.IsMasterClient && currentTargetRecipe.Count == 0)
+        if (currentTargetRecipe.Count == 0)
         {
             GenerateAndSyncRecipe();
         }
