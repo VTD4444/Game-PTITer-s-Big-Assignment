@@ -73,6 +73,7 @@ public class TimeManager : MonoBehaviourPunCallbacks
 
         // 1. Wifi Phase 2 (23h - 2h sáng) -> 23.0 đến 26.0
         float rndPhase2 = Random.Range(23.0f, 26.0f);
+        // rndPhase2 = startHour;
         
         // 2. Wifi Phase 4 (5h - 7h sáng) -> 29.0 đến 30.5
         float rndPhase4 = Random.Range(29.0f, 30.5f);
@@ -216,5 +217,7 @@ public class TimeManager : MonoBehaviourPunCallbacks
         isTimerRunning = false;
         clockText.text = "07:00";
         Debug.Log("HẾT GIỜ!");
+        if (GameManager_Main.Instance)
+            GameManager_Main.Instance.TriggerTimeOut();
     }
 }

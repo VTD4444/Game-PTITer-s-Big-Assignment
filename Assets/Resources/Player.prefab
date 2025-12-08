@@ -299,7 +299,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerStats
   maxEnergy: 100
   maxSanity: 100
-  decayRate: 0.1
+  decayRate: 0.2
+  headTextPrefab: {fileID: 8778652003975997844, guid: 41014b2d2a1fe5f4fa0fc55d7fb0db00, type: 3}
+  headTextOffset: {x: 0, y: 1.5, z: 0}
   currentEnergy: 0
   currentSanity: 0
 --- !u!114 &8436506156978372087

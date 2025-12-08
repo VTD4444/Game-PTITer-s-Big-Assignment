@@ -1,78 +1,163 @@
 using UnityEngine;
-using UnityEngine.UI; // Để dùng Slider
+using UnityEngine.UI;
 using Photon.Pun;
-using Hashtable = ExitGames.Client.Photon.Hashtable; // Để lưu Code Progress
+using TMPro; // [BẮT BUỘC] Thêm thư viện này để dùng TextMeshPro
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public class PlayerStats : MonoBehaviourPun
 {
     public static PlayerStats LocalInstance;
-    
+    public static PlayerStats Instance;
+
     [Header("Cấu hình Chỉ số")]
     public float maxEnergy = 100f;
     public float maxSanity = 100f;
-    public float decayRate = 0.5f; // Tốc độ tụt chỉ số mỗi giây
+    public float decayRate = 0.5f;
+
+    [Header("Cấu hình Cảnh báo")]
+    public GameObject headTextPrefab; // Kéo Prefab "Player Head Text" vào đây
+    public Vector3 headTextOffset = new Vector3(0, 1.5f, 0); // Vị trí text cao hơn đầu nhân vật
 
     [Header("Chỉ số hiện tại (Read Only)")]
     public float currentEnergy;
     public float currentSanity;
 
-    // Tham chiếu đến UI (Sẽ tự tìm)
+    // Tham chiếu đến UI HUD
     private Slider codeSlider;
     private Slider energySlider;
     private Slider sanitySlider;
-
-    // Key để lưu trữ Tiến độ Code trên mạng
-    private const string CODE_PROGRESS_KEY = "CodeProgress";
-    public static PlayerStats Instance;
     
+    // [MỚI] Tham chiếu đến Text % trên HUD
+    private TextMeshProUGUI energyPercentText;
+    private TextMeshProUGUI sanityPercentText;
+
+    // Biến quản lý Text trên đầu
+    private GameObject myHeadTextInstance;
+    private TextMeshProUGUI myHeadTextContent;
+    private const string CODE_PROGRESS_KEY = "CodeProgress";
+
     void Awake()
     {
-        // Chỉ gán Instance nếu đây là nhân vật do mình điều khiển
         if (photonView.IsMine)
         {
             LocalInstance = this;
         }
+        Instance = this;
     }
 
     void Start()
     {
-        // Khởi tạo chỉ số đầy
         currentEnergy = maxEnergy;
         currentSanity = maxSanity;
 
         if (photonView.IsMine)
         {
-            // Tự động tìm các thanh Slider trên màn hình HUD
-            FindSliders();
+            FindSlidersAndTexts(); // Tìm cả Slider và Text %
+            InitHeadText();        // Khởi tạo text trên đầu
         }
     }
 
     void Update()
     {
-        // Chỉ tính toán cho nhân vật CỦA TÔI
         if (photonView.IsMine)
         {
-            // 1. Giảm chỉ số theo thời gian (Sinh tồn)
             DecreaseStats();
-
-            // 2. Cập nhật hiển thị lên UI
             UpdateUI();
+            CheckWarnings(); // [MỚI] Kiểm tra cảnh báo
+            if (currentEnergy < 30 || currentSanity < 30)
+            {
+                if (GameManager_Main.Instance) 
+                    GameManager_Main.Instance.TriggerWarningFlag();
+            }
+
+            // Kiểm tra Chết (Kịch bản 4)
+            if (currentEnergy <= 0)
+            {
+                if (GameManager_Main.Instance)
+                    GameManager_Main.Instance.TriggerCriticalFailure("Lý do: Đột quỵ do kiệt sức (Hết Energy).");
+            }
+            else if (currentSanity <= 0)
+            {
+                if (GameManager_Main.Instance)
+                    GameManager_Main.Instance.TriggerCriticalFailure("Lý do: Máy tính phát nổ do quá tải Code (Hết Sanity).");
+            }
+        }
+    }
+
+    // --- 1. LOGIC KHỞI TẠO TEXT TRÊN ĐẦU ---
+    void InitHeadText()
+    {
+        if (headTextPrefab != null)
+        {
+            // Tạo ra Prefab làm con của nhân vật
+            myHeadTextInstance = Instantiate(headTextPrefab, transform);
+            myHeadTextInstance.transform.localPosition = headTextOffset;
+            
+            // Tìm component Text bên trong (giả sử bạn đã tạo TextMeshPro con như hướng dẫn Bước 1)
+            myHeadTextContent = myHeadTextInstance.GetComponentInChildren<TextMeshProUGUI>();
+            
+            // Mặc định ẩn đi
+            myHeadTextInstance.SetActive(false);
+        }
+    }
+
+    // --- 2. LOGIC KIỂM TRA CẢNH BÁO (<30%) ---
+    void CheckWarnings()
+    {
+        if (myHeadTextInstance == null || myHeadTextContent == null) return;
+
+        float energyPercent = (currentEnergy / maxEnergy) * 100f;
+        float sanityPercent = (currentSanity / maxSanity) * 100f;
+
+        string warningMsg = "";
+
+        // Ưu tiên cảnh báo: Đói -> Điên (Hoặc ngược lại tùy bạn)
+        if (energyPercent < 30f)
+        {
+            warningMsg = "Bạn đang bị đói,\nhãy đến bếp để nấu ăn!";
+        }
+        else if (sanityPercent < 30f)
+        {
+            warningMsg = "Bạn đang không tỉnh táo,\nhãy đến bàn nước để pha cafe!";
+        }
+
+        // Hiển thị hoặc Ẩn
+        if (warningMsg != "")
+        {
+            myHeadTextInstance.SetActive(true);
+            myHeadTextContent.text = warningMsg;
+            // Đổi màu chữ cho nguy hiểm (Đỏ)
+            myHeadTextContent.color = Color.red; 
+        }
+        else
+        {
+            // Nếu trên 30% hết thì ẩn đi
+            // (Lưu ý: Nếu bạn dùng chung prefab này cho việc "đau bụng", logic đó cần gọi riêng)
+            myHeadTextInstance.SetActive(false); 
         }
     }
 
     void DecreaseStats()
     {
-        // Trừ dần theo thời gian thực
-        if (currentEnergy > 0) currentEnergy -= decayRate * Time.deltaTime;
-        if (currentSanity > 0) currentSanity -= decayRate * Time.deltaTime;
+        // Tận dụng hàm Restore (truyền số âm)
+        RestoreEnergy(-decayRate * Time.deltaTime);
+        RestoreSanity(-decayRate * Time.deltaTime);
     }
 
     void UpdateUI()
     {
+        // Cập nhật Slider
         if (energySlider != null) energySlider.value = currentEnergy / maxEnergy;
         if (sanitySlider != null) sanitySlider.value = currentSanity / maxSanity;
 
-        // Lấy tiến độ Code từ Phòng (Room Properties) để cập nhật thanh chung
+        // [MỚI] Cập nhật Text %
+        if (energyPercentText != null) 
+            energyPercentText.text = $"{Mathf.RoundToInt(currentEnergy)}%";
+        
+        if (sanityPercentText != null) 
+            sanityPercentText.text = $"{Mathf.RoundToInt(currentSanity)}%";
+
+        // Cập nhật thanh Code
         if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(CODE_PROGRESS_KEY))
         {
             float progress = (float)PhotonNetwork.CurrentRoom.CustomProperties[CODE_PROGRESS_KEY];
@@ -80,80 +165,60 @@ public class PlayerStats : MonoBehaviourPun
         }
     }
 
-    void FindSliders()
+    void FindSlidersAndTexts()
     {
-        // Tìm Canvas_HUD đang có sẵn trong Scene
         GameObject canvas = GameObject.Find("Canvas_HUD");
         if (canvas != null)
         {
-            // Tìm các Slider theo tên bạn đặt ở Bước 1
-            // Dùng transform.Find đệ quy hoặc tìm theo Tag sẽ an toàn hơn, 
-            // nhưng ở đây ta tìm theo tên object cho đơn giản.
+            // Tìm Slider
             Slider[] allSliders = canvas.GetComponentsInChildren<Slider>();
-            
             foreach(Slider s in allSliders)
             {
                 if (s.name == "Slider_Code") codeSlider = s;
                 if (s.name == "Slider_Energy") energySlider = s;
                 if (s.name == "Slider_Sanity") sanitySlider = s;
             }
+
+            // [MỚI] Tìm Text % (Bạn cần tạo 2 cái TextMeshProUGUI trong HUD và đặt tên như dưới)
+            TextMeshProUGUI[] allTexts = canvas.GetComponentsInChildren<TextMeshProUGUI>();
+            foreach(var t in allTexts)
+            {
+                if (t.name == "Text_Percent_Energy") energyPercentText = t;
+                if (t.name == "Text_Percent_Sanity") sanityPercentText = t;
+            }
         }
     }
 
-    // --- HÀM TĂNG TIẾN ĐỘ CODE (Sẽ dùng cho Minigame) ---
     public void AddCodeProgress(float amount)
     {
-        if (PhotonNetwork.IsMasterClient) // Chỉ chủ phòng mới được quyền ghi đè dữ liệu phòng để tránh xung đột
+        if (PhotonNetwork.IsMasterClient || !PhotonNetwork.IsMasterClient) 
         {
             float currentProg = 0;
             if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(CODE_PROGRESS_KEY))
-            {
                 currentProg = (float)PhotonNetwork.CurrentRoom.CustomProperties[CODE_PROGRESS_KEY];
-            }
             
             currentProg += amount;
-            if (currentProg > 100) currentProg = 100;
-            if (currentProg < 0) currentProg = 0;
-
             Hashtable props = new Hashtable { { CODE_PROGRESS_KEY, currentProg } };
             PhotonNetwork.CurrentRoom.SetCustomProperties(props);
             
-            // --- ĐỔI NHẠC ---
-            if (currentProg < 25) AudioManager.Instance.PlayStageMusic(0);
-            else if (currentProg < 50) AudioManager.Instance.PlayStageMusic(1);
-            else if (currentProg < 75) AudioManager.Instance.PlayStageMusic(2);
-            else AudioManager.Instance.PlayStageMusic(3);
-        }
-        else
-        {
-            // Nếu không phải chủ phòng, gửi yêu cầu RPC hoặc tin nhắn (tạm thời ta bỏ qua bước phức tạp này, cứ để ai cũng ghi được cho đơn giản ở giai đoạn này)
-            float currentProg = 0;
-            if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(CODE_PROGRESS_KEY))
-            {
-                currentProg = (float)PhotonNetwork.CurrentRoom.CustomProperties[CODE_PROGRESS_KEY];
+            if (AudioManager.Instance != null) {
+                 if (currentProg < 25) AudioManager.Instance.PlayStageMusic(0);
+                 else if (currentProg < 50) AudioManager.Instance.PlayStageMusic(1);
+                 else if (currentProg < 75) AudioManager.Instance.PlayStageMusic(2);
+                 else AudioManager.Instance.PlayStageMusic(3);
             }
-            currentProg += amount;
-             Hashtable props = new Hashtable { { CODE_PROGRESS_KEY, currentProg } };
-            PhotonNetwork.CurrentRoom.SetCustomProperties(props);
-            
-            // --- ĐỔI NHẠC ---
-            if (currentProg < 25) AudioManager.Instance.PlayStageMusic(0);
-            else if (currentProg < 50) AudioManager.Instance.PlayStageMusic(1);
-            else if (currentProg < 75) AudioManager.Instance.PlayStageMusic(2);
-            else AudioManager.Instance.PlayStageMusic(3);
         }
     }
     
-    // --- HÀM HỒI PHỤC (Dùng cho Nấu ăn/Ngủ) ---
     public void RestoreEnergy(float amount)
     {
         currentEnergy += amount;
-        if (currentEnergy > maxEnergy) currentEnergy = maxEnergy;
+        currentEnergy = Mathf.Clamp(currentEnergy, 0, maxEnergy);
     }
 
      public void RestoreSanity(float amount)
     {
         currentSanity += amount;
-        if (currentSanity > maxSanity) currentSanity = maxSanity;
+        currentSanity = Mathf.Clamp(currentSanity, 0, maxSanity);
     }
 }

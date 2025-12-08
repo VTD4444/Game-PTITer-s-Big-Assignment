@@ -26,15 +26,45 @@ public class CookingDraggable : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     {
         if (isInfiniteSource)
         {
-            // Tủ lạnh: Tạo ra một icon tạm thời để kéo đi
-            dragObject = Instantiate(gameObject, canvas.transform);
-            dragObject.GetComponent<CanvasGroup>().blocksRaycasts = false;
-            // Xóa script drag ở bản sao để tránh lỗi đệ quy logic
-            Destroy(dragObject.GetComponent<CookingDraggable>());
-            // Gắn tạm một tag hoặc component để Slot nhận diện
+            // --- CÁCH MỚI: TẠO OBJECT SẠCH (CLEAN) ---
+        
+            // 1. Tạo một GameObject rỗng mới tên là "DragIcon"
+            dragObject = new GameObject("DragIcon");
+        
+            // 2. Gán nó làm con của Canvas ngay lập tức
+            if (canvas == null) canvas = GetComponentInParent<Canvas>().rootCanvas;
+            dragObject.transform.SetParent(canvas.transform, false);
+        
+            // 3. Thêm component Image và copy Sprite từ icon gốc sang
+            Image newImage = dragObject.AddComponent<Image>();
+            Image sourceImage = GetComponent<Image>();
+            newImage.sprite = sourceImage.sprite;
+            newImage.color = sourceImage.color;
+            newImage.preserveAspect = sourceImage.preserveAspect; // Giữ tỉ lệ ảnh
+        
+            // [FIX QUAN TRỌNG] Tắt Raycast Target để chuột xuyên qua được (quan trọng cho OnDrop)
+            newImage.raycastTarget = false; 
+
+            // 4. Copy kích thước chính xác
+            RectTransform sourceRect = GetComponent<RectTransform>();
+            RectTransform newRect = dragObject.GetComponent<RectTransform>();
+            newRect.sizeDelta = sourceRect.rect.size;
+        
+            // 5. Đặt vị trí trùng với icon gốc (dùng World Position)
+            dragObject.transform.position = transform.position;
+
+            // 6. Thêm CanvasGroup (để xử lý tương tác nếu cần, hoặc để giống logic cũ)
+            CanvasGroup cg = dragObject.AddComponent<CanvasGroup>();
+            cg.blocksRaycasts = false; 
+            cg.alpha = 0.6f; // [Mẹo] Làm mờ đi một chút để người chơi biết đang kéo (tùy chọn)
+
+            // 7. Gán script logic vào để Slot nhận diện
             var temp = dragObject.AddComponent<CookingDraggable>();
             temp.ingredientType = this.ingredientType;
             temp.isInfiniteSource = false; 
+        
+            // Đưa lên lớp trên cùng hiển thị
+            dragObject.transform.SetAsLastSibling();
         }
         else
         {
@@ -51,6 +81,7 @@ public class CookingDraggable : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     {
         if (dragObject != null)
         {
+            Debug.Log(dragObject.name);
             dragObject.GetComponent<RectTransform>().anchoredPosition += eventData.delta / canvas.scaleFactor;
         }
     }

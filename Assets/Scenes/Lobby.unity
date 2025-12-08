@@ -870,6 +870,7 @@ MonoBehaviour:
   sfxBoiling: {fileID: 8300000, guid: 3dd34a9075a7df34da3fbd24adc5bbfd, type: 3}
   sfxSugar: {fileID: 8300000, guid: 9bc0c7c3ec5647048a26b97dd2ad1cf2, type: 3}
   sfxGetThings: {fileID: 8300000, guid: 65c421f7582670c4282bd3fa56d32cc5, type: 3}
+  sfxToilet: {fileID: 8300000, guid: 688566822fe8d8842bb88774a236e9b2, type: 3}
 --- !u!4 &364009237
 Transform:
   m_ObjectHideFlags: 0
@@ -2820,7 +2821,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 0}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0

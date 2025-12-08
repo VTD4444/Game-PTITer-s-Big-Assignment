@@ -25,6 +25,9 @@ public class AudioManager : MonoBehaviour
     public AudioClip sfxBoiling;
     public AudioClip sfxSugar;
     public AudioClip sfxGetThings;
+    
+    [Header("Toilet")]
+    public AudioClip sfxToilet;
 
     private int currentStage = -1;
 
@@ -100,6 +103,7 @@ public class AudioManager : MonoBehaviour
     public void PlayPourWater() { PlaySFX(sfxPourWater); }
     public void PlaySugar() { PlaySFX(sfxSugar); }
     public void PlayGetThings() { PlaySFX(sfxGetThings); }
+    public void PlayToilet() { PlaySFX(sfxToilet);}
 
     private void PlaySFX(AudioClip clip)
     {

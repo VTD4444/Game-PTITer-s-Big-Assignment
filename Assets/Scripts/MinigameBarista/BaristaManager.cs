@@ -19,6 +19,7 @@ public class BaristaManager : MonoBehaviour
 
     [Header("UI References")]
     public GameObject panelMain;
+    public GameObject panelTutorial;   // [MỚI] Panel hướng dẫn ban đầu
     public GameObject panelRecipeView;
     public GameObject panelGameplay;
     public TextMeshProUGUI textRecipeDisplay;
@@ -46,36 +47,102 @@ public class BaristaManager : MonoBehaviour
         panelMain.SetActive(true);
         if(PlayerController.LocalPlayerInstance) PlayerController.LocalPlayerInstance.canMove = false;
 
-        GenerateRecipe();
-        StartCoroutine(GameRoutine());
+        ShowTutorial();
+    }
+    
+    void ShowTutorial()
+    {
+        panelTutorial.SetActive(true);
+        panelRecipeView.SetActive(false);
+        panelGameplay.SetActive(false);
+        
+        // Reset dữ liệu cũ
+        if(textFeedback) textFeedback.text = "";
+        playerInput.Clear();
     }
 
-    void GenerateRecipe()
+    // 2. Hàm này gắn vào nút "BẮT ĐẦU" ở Panel Tutorial
+    public void OnClickStartGame()
+    {
+        panelTutorial.SetActive(false); // Tắt hướng dẫn
+        GenerateRandomRecipe();         // Sinh công thức ngẫu nhiên
+        StartCoroutine(RecipeMemorizeRoutine()); // Bắt đầu đếm ngược 5s nhớ công thức
+    }
+
+    // [MỚI] Hàm sinh công thức có random thứ tự
+    void GenerateRandomRecipe()
     {
         targetSequence.Clear();
-        string recipeText = "CÔNG THỨC (Cho đúng theo thứ tự):\n";
+        string recipeText = "CÔNG THỨC (Làm đúng thứ tự):\n";
 
-        // 1. Random Nước (200 - 700ml) -> Mỗi lần kéo là 100ml
-        int waterCount = Random.Range(2, 8); 
-        recipeText += $"- {waterCount * 100}ml Nước\n";
-        for(int i=0; i<waterCount; i++) targetSequence.Add(BaristaIngredient.Water);
+        // Tạo danh sách các loại nguyên liệu
+        List<BaristaIngredient> availableTypes = new List<BaristaIngredient>() 
+        { 
+            BaristaIngredient.Water, 
+            BaristaIngredient.Coffee, 
+            BaristaIngredient.Sugar, 
+            BaristaIngredient.Ice 
+        };
 
-        // 2. Random Cafe (1-2 gói)
-        int coffeeCount = Random.Range(1, 3);
-        recipeText += $"- {coffeeCount} gói Cafe\n";
-        for(int i=0; i<coffeeCount; i++) targetSequence.Add(BaristaIngredient.Coffee);
+        // --- Xáo trộn thứ tự (Shuffle) ---
+        for (int i = 0; i < availableTypes.Count; i++)
+        {
+            BaristaIngredient temp = availableTypes[i];
+            int randomIndex = Random.Range(i, availableTypes.Count);
+            availableTypes[i] = availableTypes[randomIndex];
+            availableTypes[randomIndex] = temp;
+        }
 
-        // 3. Random Đường (1-5 thìa)
-        int sugarCount = Random.Range(1, 6);
-        recipeText += $"- {sugarCount} thìa Đường\n";
-        for(int i=0; i<sugarCount; i++) targetSequence.Add(BaristaIngredient.Sugar);
+        // --- Duyệt qua danh sách đã xáo trộn để tạo công thức ---
+        int stepIndex = 1;
+        foreach (BaristaIngredient type in availableTypes)
+        {
+            int count = 0;
+            string stepName = "";
 
-        // 4. Random Đá (1-10 viên)
-        int iceCount = Random.Range(1, 11);
-        recipeText += $"- {iceCount} viên Đá";
-        for(int i=0; i<iceCount; i++) targetSequence.Add(BaristaIngredient.Ice);
+            switch (type)
+            {
+                case BaristaIngredient.Water:
+                    count = Random.Range(2, 8); // 200-700ml
+                    stepName = $"{count * 100}ml Nước";
+                    break;
+                case BaristaIngredient.Coffee:
+                    count = Random.Range(1, 3); // 1-2 gói
+                    stepName = $"{count} gói Cafe";
+                    break;
+                case BaristaIngredient.Sugar:
+                    count = Random.Range(1, 6); // 1-5 thìa
+                    stepName = $"{count} thìa Đường";
+                    break;
+                case BaristaIngredient.Ice:
+                    count = Random.Range(1, 11); // 1-10 viên
+                    stepName = $"{count} viên Đá";
+                    break;
+            }
+
+            // Ghi vào text hiển thị
+            recipeText += $"{stepIndex}. {stepName}\n";
+            
+            // Thêm vào logic game (add đúng số lượng yêu cầu)
+            for(int k=0; k<count; k++) targetSequence.Add(type);
+            
+            stepIndex++;
+        }
 
         textRecipeDisplay.text = recipeText;
+    }
+    
+    IEnumerator RecipeMemorizeRoutine()
+    {
+        // Giai đoạn: Hiện công thức để nhớ
+        panelRecipeView.SetActive(true);
+        
+        yield return new WaitForSeconds(5f); // Người chơi có 5 giây để nhớ
+
+        // Giai đoạn: Pha chế
+        panelRecipeView.SetActive(false);
+        panelGameplay.SetActive(true);
+        isGameActive = true;
     }
 
     IEnumerator GameRoutine()
@@ -88,7 +155,7 @@ public class BaristaManager : MonoBehaviour
         panelRecipeView.SetActive(true);
         panelGameplay.SetActive(false);
         
-        yield return new WaitForSeconds(3f); // Hiện 3 giây
+        yield return new WaitForSeconds(5f); // Hiện 5 giây
 
         // Giai đoạn 2: Pha chế
         panelRecipeView.SetActive(false);

@@ -117,7 +117,7 @@ public class MinigameHello : MonoBehaviour
                 PlayerStats stats = PlayerController.LocalPlayerInstance.GetComponent<PlayerStats>();
                 if (stats != null)
                 {
-                    stats.AddCodeProgress(1f);
+                    stats.AddCodeProgress(2f);
                     CheckWinCondition();
                 }
             }
@@ -144,7 +144,7 @@ public class MinigameHello : MonoBehaviour
         if (isCorrect)
         {
             feedbackText.color = Color.green;
-            feedbackText.text = "CORRECT! (+1%)";
+            feedbackText.text = "CORRECT! (+2%)";
         }
         else
         {

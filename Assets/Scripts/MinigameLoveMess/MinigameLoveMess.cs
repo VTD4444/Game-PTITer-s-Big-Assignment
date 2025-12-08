@@ -9,7 +9,6 @@ public class MinigameLoveMess : MonoBehaviour
     
     [Header("UI Panels (Kéo 2 cái Container vào đây)")]
     public GameObject panelChatInterface; // Chứa Text tin nhắn, Nút chọn...
-    public GameObject panelNormalScreen;  // Chứa Hình nền, đồng hồ...
 
     [Header("UI Components")]
     public TextMeshProUGUI txtNYMessage; // Text hiển thị tin nhắn của NY
@@ -40,6 +39,8 @@ public class MinigameLoveMess : MonoBehaviour
     public AudioClip bgmVictory;    // Nhạc chiến thắng
     
     private bool isMinigameStarted = false;
+    // [QUAN TRỌNG] Biến cờ đánh dấu đã hoàn thành chưa
+    private bool isFinished = false;
 
     // Trạng thái hội thoại
     private enum State { 
@@ -83,42 +84,38 @@ public class MinigameLoveMess : MonoBehaviour
     // --- SỬA HÀM NÀY ĐỂ FIX LỖI HIỆN TIN NHẮN SAI LÚC ---
     void OnEnable()
     {
-        // 1. Kiểm tra kỹ xem Manager có đang báo sự kiện không
-        bool isEvent = false;
-        if (LoveMessManager.Instance != null)
+        // Reset cờ finish mỗi khi mở lên nếu là lần đầu
+        // (Lưu ý: Nếu đã start rồi thì không reset cờ này để tránh lỗi logic)
+        if (!isMinigameStarted) 
         {
-            isEvent = LoveMessManager.Instance.IsEventActive;
+            isFinished = false; 
+            ResetMinigame();
+            isMinigameStarted = true;
         }
 
-        // 2. Logic Bật/Tắt UI
+        // Logic hiển thị UI Chat/Normal giữ nguyên như cũ
+        bool isEvent = LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive;
         if (isEvent)
         {
-            // === CÓ SỰ KIỆN ===
-            Debug.Log("Mở điện thoại: CHẾ ĐỘ TIN NHẮN");
             if(panelChatInterface) panelChatInterface.SetActive(true);
-            if(panelNormalScreen) panelNormalScreen.SetActive(false);
-
-            // Logic lưu tiến độ
-            if (!isMinigameStarted)
-            {
-                ResetMinigame(); // Lần đầu mở -> Reset về Intro
-                isMinigameStarted = true;
-            }
-            // Nếu isMinigameStarted == true -> Giữ nguyên hiện trạng (không reset)
         }
         else
         {
-            // === KHÔNG CÓ SỰ KIỆN ===
-            Debug.Log("Mở điện thoại: CHẾ ĐỘ MÀN HÌNH CHỜ");
-            
-            // Tắt sạch sẽ giao diện chat
             if(panelChatInterface) panelChatInterface.SetActive(false);
-            
-            // Hiện màn hình chờ (Wallpaper)
-            if(panelNormalScreen) panelNormalScreen.SetActive(true);
-
-            // Reset các cờ để đảm bảo an toàn
-            isMinigameStarted = false;
+        }
+    }
+    
+    // [MỚI] HÀM NÀY CHẠY KHI TẮT PANEL (Bấm nút X hoặc đi ra xa)
+    void OnDisable()
+    {
+        // Nếu sự kiện đang diễn ra VÀ Người chơi chưa hoàn thành (chưa Win/Fail)
+        if (LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive)
+        {
+            if (!isFinished)
+            {
+                // Gọi quản lý để REO LẠI
+                LoveMessManager.Instance.ResumeRinging();
+            }
         }
     }
 
@@ -233,12 +230,13 @@ public class MinigameLoveMess : MonoBehaviour
 
     void EndGame_A_Fail()
     {
+        isFinished = true;
         currentState = State.A_Fail_Final;
         txtNYMessage.text = "NY: Sai. Hôm nay là kỷ niệm 1 năm 1 tháng 1 ngày. Số đẹp thế mà không để ý. CHIA TAY ĐI! (Bạn đã bị chặn)";
         buttonContainer.SetActive(false); // Ẩn nút chọn
 
         // Hiệu ứng Fail A
-        StartCoroutine(ShockEffect());
+        StartCoroutine(CloseDelay(3f));
     }
 
     IEnumerator ShockEffect()
@@ -249,11 +247,6 @@ public class MinigameLoveMess : MonoBehaviour
         // 2. Đổi nhạc nền
         if(bgmSource && bgmSad) { bgmSource.clip = bgmSad; bgmSource.Play(); }
 
-        // 3. Đóng băng (Logic game) - Giả sử pause logic hoặc chặn input
-        Time.timeScale = 0; // Tạm dừng game để tạo cảm giác sốc
-        yield return new WaitForSecondsRealtime(2f); // Chờ 2s thời gian thực
-        Time.timeScale = 1;
-
         // HÌNH PHẠT: Giảm 50 Sanity
         if (PlayerStats.LocalInstance != null)
         {
@@ -263,7 +256,7 @@ public class MinigameLoveMess : MonoBehaviour
         }
 
         yield return new WaitForSeconds(3f);
-        CloseMinigame();
+        StartCoroutine(CloseDelay(1f));
     }
 
 
@@ -286,6 +279,7 @@ public class MinigameLoveMess : MonoBehaviour
 
     void EndGame_B_Spam()
     {
+        isFinished = true;
         currentState = State.B_Fail_Spam;
         // Bắt đầu chuỗi spam
         txtNYMessage.text = "NY: Vậy anh cưới luôn máy tính đi nhé! \n(Messages Incoming...)";
@@ -331,6 +325,7 @@ public class MinigameLoveMess : MonoBehaviour
 
     void EndGame_C_Win()
     {
+        isFinished = true;
         currentState = State.C_Win;
         txtNYMessage.text = "NY: Ỏ, dạ, cố lên nha anh ❤️";
         buttonContainer.SetActive(false);
@@ -347,7 +342,7 @@ public class MinigameLoveMess : MonoBehaviour
             Debug.Log("Đã hồi 30 Sanity!");
         }
 
-        StartCoroutine(CloseDelay(4f));
+        StartCoroutine(CloseDelay(3f));
     }
 
     // --- TIỆN ÍCH ---
@@ -359,6 +354,11 @@ public class MinigameLoveMess : MonoBehaviour
 
     public void CloseMinigame()
     {
+        // Trước khi tắt, gọi EndEvent nếu đã xong
+        if (isFinished && LoveMessManager.Instance != null) 
+        {
+            LoveMessManager.Instance.EndEvent();
+        }
         // Gọi hàm CloseAllMinigames từ script InteractableObject hoặc tắt gameObject này
         // Vì script này nằm trên Panel, ta chỉ cần tắt nó đi
         gameObject.SetActive(false);

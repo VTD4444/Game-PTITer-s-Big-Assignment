@@ -1,6 +1,7 @@
 using UnityEngine;
+using Photon.Pun;
 
-public class LoveMessManager : MonoBehaviour
+public class LoveMessManager : MonoBehaviourPun
 {
     public static LoveMessManager Instance;
 
@@ -14,6 +15,10 @@ public class LoveMessManager : MonoBehaviour
     
     [Header("Cấu hình Phạt")]
     public float sanityDecayRate = 2.0f; // Mất 2 Sanity mỗi giây nếu lề mề
+    
+    [Header("Cảnh báo")]
+    public GameObject playerHeadTextPrefab; // Kéo Prefab "Player Head Text" vào
+    private GameObject currentHeadText;     // Lưu tham chiếu để xóa sau này
 
     void Awake()
     {
@@ -32,61 +37,129 @@ public class LoveMessManager : MonoBehaviour
     
     void Update()
     {
-        // [YÊU CẦU 2] Tụt Sanity liên tục khi chuông đang reo
-        // Chỉ trừ Sanity nếu đang Reo VÀ Game chưa kết thúc
+        // LOGIC TRỪ ĐIỂM & HIỆN TEXT CẢNH BÁO
         if (IsRinging)
         {
+            // 1. Trừ Sanity
             if (PlayerStats.LocalInstance != null)
             {
-                // Trừ Sanity của người chơi hiện tại
                 PlayerStats.LocalInstance.RestoreSanity(-sanityDecayRate * Time.deltaTime);
+                
+                // 2. Hiện Text cảnh báo trên đầu (nếu chưa có)
+                if (currentHeadText == null && playerHeadTextPrefab != null)
+                {
+                    ShowWarningText();
+                }
+            }
+        }
+        else
+        {
+            // Nếu hết reo thì xóa text đi cho đỡ rối mắt
+            if (currentHeadText != null) Destroy(currentHeadText);
+        }
+        
+        // --- 2. [FIX LỖI ICON] CƠ CHẾ TỰ ĐỒNG BỘ VISUAL ---
+        // Đảm bảo Icon luôn bật/tắt đúng theo biến IsRinging
+        if (notificationIcon != null)
+        {
+            // Nếu trạng thái Icon khác với trạng thái Reo -> Ép lại cho đúng
+            if (notificationIcon.activeSelf != IsRinging)
+            {
+                notificationIcon.SetActive(IsRinging);
+            }
+        }
+        
+        // Đồng bộ cả âm thanh (chống lỗi mất tiếng hoặc reo mãi không tắt)
+        if (phoneRingSource != null)
+        {
+            if (IsRinging && !phoneRingSource.isPlaying) 
+            {
+                phoneRingSource.loop = true;
+                phoneRingSource.Play();
+            }
+            else if (!IsRinging && phoneRingSource.isPlaying)
+            {
+                phoneRingSource.Stop();
+            }
+        }
+    }
+    
+    void ShowWarningText()
+    {
+        if (PlayerController.LocalPlayerInstance != null)
+        {
+            currentHeadText = Instantiate(playerHeadTextPrefab, PlayerController.LocalPlayerInstance.transform);
+            currentHeadText.transform.localPosition = new Vector3(0, 1.5f, 0); // Chỉnh cao độ
+            
+            // Tìm TextMeshPro để gán nội dung
+            var tmp = currentHeadText.GetComponentInChildren<TMPro.TextMeshProUGUI>();
+            if (tmp) 
+            {
+                tmp.text = "Lại gần điện thoại ở trên giường để nghe máy!";
             }
         }
     }
 
-    // Hàm này được TimeManager gọi khi đến giờ
+    // --- 1. KÍCH HOẠT SỰ KIỆN ---
     public void TriggerEvent()
     {
         IsEventActive = true;
-        IsRinging = true; // Bắt đầu reo và trừ điểm
         
-        // Bật hiệu ứng thông báo để người chơi biết chạy lại bấm E
-        if (notificationIcon) notificationIcon.SetActive(true);
-        
-        // Bật chuông reo
-        if (phoneRingSource) 
-        {
-            phoneRingSource.loop = true; 
-            phoneRingSource.Play();
-        }
-        
-        Debug.Log("Điện thoại đang rung! Hãy ra bấm E để trả lời.");
+        // Gọi RPC để tất cả cùng reo
+        if (photonView != null) photonView.RPC("RpcStartRinging", RpcTarget.AllBuffered);
+        else RpcStartRinging();
     }
     
-    // 2. GỌI KHI HOST MỞ ĐIỆN THOẠI (InteractableObject gọi)
+    [PunRPC]
+    void RpcStartRinging()
+    {
+        IsRinging = true;
+        if (notificationIcon) notificationIcon.SetActive(true);
+        if (phoneRingSource) { phoneRingSource.loop = true; phoneRingSource.Play(); }
+    }
+    
+    // --- 2. NGHE MÁY (TẠM DỪNG CHUÔNG) ---
     public void PickupPhone()
     {
-        IsRinging = false; // Ngừng trừ điểm
-        
-        // Tắt tiếng chuông và icon
-        if (phoneRingSource) 
-        {
-            phoneRingSource.Stop();
-            phoneRingSource.loop = false;
-        }
-        if (notificationIcon) notificationIcon.SetActive(false);
-
-        Debug.Log("Đã nghe máy. Ngừng tụt Sanity.");
+        if (photonView != null) photonView.RPC("RpcStopRinging", RpcTarget.AllBuffered);
+        else RpcStopRinging();
     }
 
-    // Hàm này được gọi khi Minigame kết thúc (Win/Fail/Tắt máy)
+    [PunRPC]
+    void RpcStopRinging()
+    {
+        IsRinging = false; // Tạm ngừng trừ điểm
+        if (phoneRingSource) phoneRingSource.Stop();
+        // if (notificationIcon) notificationIcon.SetActive(false);
+        // Text cảnh báo sẽ tự mất trong Update
+    }
+
+    // --- 3. [MỚI] REO LẠI (NẾU TẮT PANEL MÀ CHƯA XONG) ---
+    public void ResumeRinging()
+    {
+        // Chỉ reo lại nếu sự kiện vẫn còn (chưa EndEvent)
+        if (IsEventActive)
+        {
+            if (photonView != null) photonView.RPC("RpcStartRinging", RpcTarget.AllBuffered);
+            else RpcStartRinging();
+            Debug.Log("Chưa trả lời xong đã tắt máy -> Reo tiếp!");
+        }
+    }
+
+    // --- 4. KẾT THÚC HOÀN TOÀN ---
     public void EndEvent()
+    {
+        if (photonView != null) photonView.RPC("RpcEndEvent", RpcTarget.AllBuffered);
+        else RpcEndEvent();
+    }
+
+    [PunRPC]
+    void RpcEndEvent()
     {
         IsEventActive = false;
         IsRinging = false;
-        
-        // Tắt thông báo
         if (notificationIcon) notificationIcon.SetActive(false);
         if (phoneRingSource) phoneRingSource.Stop();
+        if (currentHeadText != null) Destroy(currentHeadText);
     }
 }

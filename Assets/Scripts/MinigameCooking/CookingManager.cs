@@ -78,6 +78,7 @@ public class CookingManager : MonoBehaviourPunCallbacks
     private bool isCooking = false;
     private float cookTimer = 0f;
     public bool IsSick { get; private set; } = false; // Biến check đau bụng
+    private bool isToiletOccupied = false;
 
     void Awake() { Instance = this; }
 
@@ -91,7 +92,8 @@ public class CookingManager : MonoBehaviourPunCallbacks
     void Update()
     {
         if(btnEat) btnEat.interactable = isCooking;
-        // Logic đếm giờ nấu (Vẫn chạy dù đóng panel)
+
+        // Logic đếm giờ (Chạy song song trên cả 2 máy khi isCooking = true)
         if (isCooking)
         {
             cookTimer += Time.deltaTime;
@@ -101,36 +103,26 @@ public class CookingManager : MonoBehaviourPunCallbacks
                 if(cookingSlider) cookingSlider.value = cookTimer / 50f;
                 if(textCookingStatus) textCookingStatus.text = $"ĐANG NẤU: {cookTimer:F1}s";
                 
-                // Gợi ý màu sắc thanh slider
                 Image fill = cookingSlider.fillRect.GetComponent<Image>();
                 if (fill)
                 {
-                    if (cookTimer < 30) fill.color = Color.yellow;      // Chưa chín
-                    else if (cookTimer <= 40) fill.color = Color.green; // Chín tới (Perfect)
-                    else fill.color = Color.red;                        // Cháy
+                    if (cookTimer < 30) fill.color = Color.yellow;      
+                    else if (cookTimer <= 40) fill.color = Color.green; 
+                    else fill.color = Color.red;                        
                 }
             }
             
+            // Audio đồng bộ
             if (potAudioSource != null)
             {
-                // Chỉ kêu khi ở vùng Perfect (30s - 40s)
                 bool inPerfectZone = (cookTimer >= 30f && cookTimer <= 40f);
-                
-                if (inPerfectZone)
-                {
-                    if (!potAudioSource.isPlaying) potAudioSource.Play();
-                }
-                else
-                {
-                    if (potAudioSource.isPlaying) potAudioSource.Stop();
-                }
+                if (inPerfectZone && !potAudioSource.isPlaying) potAudioSource.Play();
+                else if (!inPerfectZone && potAudioSource.isPlaying) potAudioSource.Stop();
             }
         }
         else
         {
-            // Ngừng nấu thì tắt tiếng ngay
-            if (potAudioSource != null && potAudioSource.isPlaying) 
-                potAudioSource.Stop();
+            if (potAudioSource != null && potAudioSource.isPlaying) potAudioSource.Stop();
         }
     }
 
@@ -209,68 +201,106 @@ public class CookingManager : MonoBehaviourPunCallbacks
     }
 
     // --- LOGIC KÉO THẢ VÀO NỒI ---
+    // --- LOGIC 1: KÉO ĐỒ VÀO NỒI (GỌI TỪ SLOT) ---
     public void AddToPot(Ingredient ing)
     {
-        // Chỉ được thêm nếu chưa bấm nút Nấu (Hoặc game này vừa nấu vừa thêm? Giả sử vừa nấu vừa thêm cũng được)
-        // Nhưng logic đúng là thêm xong mới bật bếp. Ở đây ta cho thêm thoải mái.
-        
-        // Xóa khỏi Inventory người chơi
+        AudioManager.Instance.PlayGetThings();
+        // 1. Xử lý CỤC BỘ: Xóa đồ khỏi túi của mình
         if (playerInventory.Contains(ing))
         {
             playerInventory.Remove(ing);
-            potIngredients.Add(ing);
-            
-            // Re-render
+            // Render lại túi của mình
             RenderIngredients(playerInventory, playerInventoryContainer, false);
-            RenderIngredients(potIngredients, potContainer, false); // SlotType Pot không cho kéo đi
             
-            // Tự động bật bếp khi có nguyên liệu đầu tiên
-            if (!isCooking)
-            {
-                isCooking = true;
-                cookTimer = 0f;
-            }
+            // 2. Xử lý MẠNG: Gửi lệnh thêm vào nồi cho cả 2 người cùng thấy
+            // Dùng RpcTarget.All để cả mình và bạn đều nhận được
+            photonView.RPC("RpcAddIngredientToPot", RpcTarget.All, (int)ing);
+        }
+    }
+    
+    // Hàm RPC chạy trên cả 2 máy
+    [PunRPC]
+    void RpcAddIngredientToPot(int ingredientIndex)
+    {
+        Ingredient ing = (Ingredient)ingredientIndex;
+        
+        // Thêm vào danh sách chung
+        potIngredients.Add(ing);
+        
+        // Render lại UI Nồi (để cả 2 cùng thấy món ăn hiện trong nồi)
+        RenderIngredients(potIngredients, potContainer, true); // true để không cho kéo ra
+
+        // Tự động bật bếp nếu chưa nấu
+        // Vì hàm này chạy trên cả 2 máy, nên cả 2 biến isCooking đều = true -> Timer cùng chạy
+        if (!isCooking)
+        {
+            isCooking = true;
+            cookTimer = 0f;
         }
     }
 
-    // --- LOGIC NÚT "ĂN" (FINISH COOKING) ---
+    // --- LOGIC 2: NÚT "ĂN" (KẾT THÚC) ---
     public void FinishCooking()
     {
-        isCooking = false;
+        // Khi bấm nút Ăn, gửi lệnh kết thúc cho cả làng
+        // Truyền ActorNumber để biết ai là người bấm (người đó được cộng điểm)
+        photonView.RPC("RpcFinishCooking", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber);
+    }
+
+    [PunRPC]
+    void RpcFinishCooking(int actorWhoClicked)
+    {
+        isCooking = false; 
         
-        // 1. Kiểm tra thời gian
+        // ... (Logic kiểm tra kết quả giữ nguyên) ...
+        if (targetRecipes.Count == 0) GenerateTwoRecipes(); 
         bool timePerfect = (cookTimer >= 30f && cookTimer <= 40f);
-        
-        // 2. Kiểm tra công thức
-        // So sánh đồ trong nồi với Món 1 HOẶC Món 2
         bool recipeMatch = CheckRecipeMatch(potIngredients, targetRecipes[0]) || 
                            CheckRecipeMatch(potIngredients, targetRecipes[1]);
         
-        AudioManager.Instance.ToggleBoilingSound(false); // Tắt tiếng sôi ngay
-        AudioManager.Instance.PlayEat(); // TIẾNG ĂN
+        if (potAudioSource) potAudioSource.Stop();
 
-        CloseAllPanels();
+        // --- SỬA ĐỔI ---
+        // Gọi đóng Panel cho TẤT CẢ mọi người.
+        // Ai đang mở bếp sẽ tự động đóng lại và được mở khóa di chuyển.
+        CloseAllPanels(); 
 
         if (timePerfect && recipeMatch)
         {
             // THÀNH CÔNG
-            AudioManager.Instance.PlayWin(); // TIẾNG THẮNG
-            if(PlayerController.LocalPlayerInstance)
+            AudioManager.Instance.PlayWin();
+            
+            // Chỉ cộng điểm cho người bấm (để tránh cộng đôi)
+            if (PhotonNetwork.LocalPlayer.ActorNumber == actorWhoClicked)
             {
-                var stats = PlayerController.LocalPlayerInstance.GetComponent<PlayerStats>();
-                stats.RestoreEnergy(50f);
-                stats.RestoreSanity(10f);
+                if(PlayerController.LocalPlayerInstance)
+                {
+                    var stats = PlayerController.LocalPlayerInstance.GetComponent<PlayerStats>();
+                    stats.RestoreEnergy(50f);
+                    stats.RestoreSanity(10f);
+                }
             }
         }
         else
         {
-            // THẤT BẠI -> ĐAU BỤNG
-            AudioManager.Instance.PlayFail(); // TIẾNG ĐAU BỤNG/FAIL
-            TriggerSickness();
+            // THẤT BẠI
+            AudioManager.Instance.PlayFail();
+            
+            // Chỉ người bấm bị đau bụng
+            if (PhotonNetwork.LocalPlayer.ActorNumber == actorWhoClicked)
+            {
+                TriggerSickness();
+                // Lưu ý: TriggerSickness chỉ hiện chữ "Đau bụng", 
+                // còn CloseAllPanels ở trên đã lo việc mở khóa di chuyển rồi.
+            }
         }
 
-        // Reset nồi
+        // Dọn dẹp nồi
         potIngredients.Clear();
+        foreach(Transform child in potContainer) Destroy(child.gameObject);
+        
+        if(textCookingStatus) textCookingStatus.text = "KÉO NGUYÊN LIỆU VÀO NỒI";
+        if(cookingSlider) cookingSlider.value = 0;
     }
 
     bool CheckRecipeMatch(List<Ingredient> input, List<Ingredient> target)
@@ -298,6 +328,7 @@ public class CookingManager : MonoBehaviourPunCallbacks
 
     public void AddToBasket(Ingredient ing)
     {
+        AudioManager.Instance.PlayGetThings();
         playerInventory.Add(ing);
         RenderIngredients(playerInventory, basketContainer, false);
     }
@@ -371,13 +402,64 @@ public class CookingManager : MonoBehaviourPunCallbacks
 
     public void OpenToiletInteraction()
     {
-        if (!IsSick) return; // Khỏe mạnh thì không cho đi
+        if (!IsSick) return;          // Chỉ người đau bụng mới kích hoạt được
+        if (isToiletOccupied) return; // Nếu đang có người đi rồi thì thôi
 
-        // Khóa di chuyển, hiện UI Toilet
-        if(PlayerController.LocalPlayerInstance) PlayerController.LocalPlayerInstance.canMove = false;
+        // 1. Khóa di chuyển của bản thân (Local) ngay lập tức
+        if(PlayerController.LocalPlayerInstance) 
+            PlayerController.LocalPlayerInstance.canMove = false;
         
+        // 2. Gửi lệnh cho TẤT CẢ mọi người: "Tao (ActorNumber X) đang đi vệ sinh, hiện Canvas lên!"
+        // Chúng ta truyền ID của người chơi để tí nữa biết ai là người cần được "chữa bệnh"
+        photonView.RPC("RpcStartToilet", RpcTarget.All, PhotonNetwork.LocalPlayer.ActorNumber);
+    }
+
+    [PunRPC]
+    void RpcStartToilet(int actorNumber)
+    {
+        // Hàm này chạy trên TẤT CẢ các máy (Cả máy mình và máy bạn)
+        StartCoroutine(ToiletRoutine(actorNumber));
+    }
+
+    IEnumerator ToiletRoutine(int actorID)
+    {
+        isToiletOccupied = true;
+        
+        // Bật Canvas trên đầu bồn cầu lên (Ai cũng thấy vì RPC gọi hàm này trên mọi máy)
         if(toiletWorldCanvas) toiletWorldCanvas.SetActive(true);
-        StartCoroutine(ToiletRoutine());
+
+        float duration = 10f; // Đi vệ sinh 10 giây
+        float timer = 0f;
+
+        while (timer < duration)
+        {
+            timer += Time.deltaTime;
+            
+            // Cập nhật Slider đồng bộ
+            if(toiletSlider) toiletSlider.value = timer / duration;
+            if(toiletText) toiletText.text = "Pẹt pẹt" + new string('.', (int)(timer % 4));
+            
+            yield return null;
+        }
+
+        // --- KẾT THÚC ---
+        isToiletOccupied = false;
+        if(toiletWorldCanvas) toiletWorldCanvas.SetActive(false); // Tắt Canvas
+
+        // Kiểm tra xem MÌNH có phải là người vừa đi vệ sinh không?
+        // (Dựa vào ID truyền vào ban đầu)
+        if (PhotonNetwork.LocalPlayer.ActorNumber == actorID)
+        {
+            // Nếu đúng là mình -> Hết bệnh, Mở khóa di chuyển
+            IsSick = false;
+            
+            if(currentHeadText) Destroy(currentHeadText); // Xóa chữ "Đau bụng" trên đầu
+            
+            if(PlayerController.LocalPlayerInstance) 
+                PlayerController.LocalPlayerInstance.canMove = true;
+                
+            Debug.Log("Đã đi vệ sinh xong!");
+        }
     }
 
     IEnumerator ToiletRoutine()
@@ -444,7 +526,7 @@ public class CookingManager : MonoBehaviourPunCallbacks
         if(panelSelection) panelSelection.SetActive(false);
         if(panelRecipes) panelRecipes.SetActive(false);
         
-        if (!IsSick && PlayerController.LocalPlayerInstance)
+        if (PlayerController.LocalPlayerInstance)
             PlayerController.LocalPlayerInstance.canMove = true;
     }
 }

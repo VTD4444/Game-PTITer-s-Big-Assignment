@@ -1,5 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
+using Hashtable = ExitGames.Client.Photon.Hashtable;
 
 public enum InteractionType { Code, Cook, FixWifi, Toilet, Fridge, Barista, Phone }
 
@@ -17,6 +18,8 @@ public class InteractableObject : MonoBehaviour
     public GameObject panelLoveMess;
 
     private bool isPlayerInside = false;
+    // Key lưu mốc cao nhất đạt được
+    private const string MAX_CODE_STAGE_KEY = "MaxCodeStage";
 
     void Start()
     {
@@ -37,12 +40,16 @@ public class InteractableObject : MonoBehaviour
             // Nếu là Phone: Chỉ hiện E khi có sự kiện (LoveMessManager.IsEventActive = true)
             if (type == InteractionType.Phone)
             {
-                // [YÊU CẦU 2] Kiểm tra xem có phải Host (MasterClient) không?
-                if (PhotonNetwork.IsMasterClient)
+                // --- LOGIC CHẶN CLIENT ---
+                if (!PhotonNetwork.IsMasterClient)
                 {
-                    // Nếu chủ phòng -> Bật nút E
-                    if(promptCanvas) promptCanvas.SetActive(false);
-                    if(promptCanvas) promptCanvas.SetActive(true);
+                    // Nếu không phải Host -> TUYỆT ĐỐI TẮT
+                    if (promptCanvas.activeSelf) promptCanvas.SetActive(false);
+                }
+                else
+                {
+                    if (!promptCanvas.activeSelf) 
+                        promptCanvas.SetActive(true);
                 }
             }
             else 
@@ -108,23 +115,37 @@ public class InteractableObject : MonoBehaviour
                     WifiManager.Instance.OpenPCPanel(); // Bật màn hình báo lỗi thay vì game Code
                     return; // Dừng lại, không mở minigame code nữa
                 }
-                // Chuyển 4 giai đoạn bằng if (vì nó phụ thuộc giá trị float)
-                if (currentProg < 25f)
+                // 1. Tính xem với % hiện tại thì đáng lẽ ở Stage mấy?
+                int calculatedStage = 0;
+                if (currentProg >= 75f) calculatedStage = 3;      // Decode
+                else if (currentProg >= 50f) calculatedStage = 2; // Mech
+                else if (currentProg >= 25f) calculatedStage = 1; // Flow
+                else calculatedStage = 0;                         // Hello
+
+                // 2. Lấy Stage cao nhất đã từng đạt được từ Server
+                int maxStageReached = 0;
+                if (PhotonNetwork.CurrentRoom.CustomProperties.ContainsKey(MAX_CODE_STAGE_KEY))
                 {
-                    ActivatePanel(panelHello);
+                    maxStageReached = (int)PhotonNetwork.CurrentRoom.CustomProperties[MAX_CODE_STAGE_KEY];
                 }
-                else if (currentProg < 50f)
+
+                // 3. So sánh: Nếu % hiện tại mở khóa được stage cao hơn mốc cũ -> Cập nhật mốc mới
+                if (calculatedStage > maxStageReached)
                 {
-                    ActivatePanel(panelFlow);
+                    maxStageReached = calculatedStage;
+                    
+                    // Lưu mốc mới lên Server để không bao giờ bị tụt nữa
+                    Hashtable props = new Hashtable { { MAX_CODE_STAGE_KEY, maxStageReached } };
+                    PhotonNetwork.CurrentRoom.SetCustomProperties(props);
                 }
-                else if (currentProg < 75f)
-                {
-                    ActivatePanel(panelMech);
-                }
-                else if (currentProg < 100f)
-                {
-                    ActivatePanel(panelDecode);
-                }
+
+                // 4. Mở game dựa theo mốc cao nhất (maxStageReached) thay vì % hiện tại
+                Debug.Log($"Mở Minigame Code. Progress: {currentProg}%. Stage Unlock: {maxStageReached}");
+
+                if (maxStageReached == 0) ActivatePanel(panelHello);
+                else if (maxStageReached == 1) ActivatePanel(panelFlow);
+                else if (maxStageReached == 2) ActivatePanel(panelMech);
+                else ActivatePanel(panelDecode);
                 break;
 
             case InteractionType.Cook:
@@ -152,15 +173,23 @@ public class InteractableObject : MonoBehaviour
                 }
                 break;
             case InteractionType.Phone:
-                // Kiểm tra xem có đang diễn ra sự kiện tin nhắn không?
-                // Chúng ta sẽ cần một Manager quản lý trạng thái cái điện thoại (Xem Bước 2)
                 if (panelLoveMess)
                 {
-                    // [MỚI] Nếu đang có sự kiện -> Gọi nghe máy để tắt chuông
-                    if (LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive)
+                    // Kiểm tra Manager
+                    if (LoveMessManager.Instance != null)
                     {
-                        LoveMessManager.Instance.PickupPhone();
+                        // Nếu sự kiện đang diễn ra
+                        if (LoveMessManager.Instance.IsEventActive)
+                        {
+                            // Và điện thoại ĐANG REO -> Thì mới Nhấc máy (Tắt chuông)
+                            if (LoveMessManager.Instance.IsRinging)
+                            {
+                                LoveMessManager.Instance.PickupPhone();
+                            }
+                        }
                     }
+                    
+                    // Mở Panel lên (MinigameLoveMess.OnEnable sẽ tự lo việc hiện Chat hay hiện Wallpaper)
                     ActivatePanel(panelLoveMess);
                 }
                 break;
@@ -209,11 +238,32 @@ public class InteractableObject : MonoBehaviour
         {
             isPlayerInside = true;
             
+            // Nếu là Phone và là Client -> Đừng có bật Prompt lên!
+            if (type == InteractionType.Phone && !PhotonNetwork.IsMasterClient)
+            {
+                if(promptCanvas) promptCanvas.SetActive(false);
+                return; 
+            }
+            
             bool isAnyPanelOpen = (panelHello != null && panelHello.activeSelf) || 
                                   (panelFlow != null && panelFlow.activeSelf) ||
                                   (panelMech != null && panelMech.activeSelf);
 
-            if (!isAnyPanelOpen && promptCanvas != null) promptCanvas.SetActive(true);
+            if (!isAnyPanelOpen && promptCanvas != null) 
+            {
+                // Logic riêng cho Phone Host: Check event rồi mới bật
+                if (type == InteractionType.Phone)
+                {
+                    if (LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive)
+                        promptCanvas.SetActive(true);
+                    else
+                        promptCanvas.SetActive(false);
+                }
+                else
+                {
+                    promptCanvas.SetActive(true);
+                }
+            }
         }
     }
 

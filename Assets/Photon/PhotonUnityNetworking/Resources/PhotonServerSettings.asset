@@ -56,6 +56,12 @@ MonoBehaviour:
   - SyncPuzzleData
   - SyncTargetsRPC
   - TryCaptureRPC
+  - RpcEndEvent
+  - RpcStopRinging
+  - RpcStartRinging
+  - RpcAddIngredientToPot
+  - RpcFinishCooking
+  - RpcStartToilet
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1
