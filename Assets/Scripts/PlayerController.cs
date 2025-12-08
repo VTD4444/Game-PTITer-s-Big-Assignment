@@ -1,5 +1,6 @@
 using UnityEngine;
 using Photon.Pun;
+using Photon.Voice.Unity;
 
 public class PlayerController : MonoBehaviourPun
 {

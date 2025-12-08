@@ -156,6 +156,11 @@ public class InteractableObject : MonoBehaviour
                 // Chúng ta sẽ cần một Manager quản lý trạng thái cái điện thoại (Xem Bước 2)
                 if (panelLoveMess)
                 {
+                    // [MỚI] Nếu đang có sự kiện -> Gọi nghe máy để tắt chuông
+                    if (LoveMessManager.Instance != null && LoveMessManager.Instance.IsEventActive)
+                    {
+                        LoveMessManager.Instance.PickupPhone();
+                    }
                     ActivatePanel(panelLoveMess);
                 }
                 break;

@@ -6,6 +6,10 @@ using System.Collections;
 public class MinigameLoveMess : MonoBehaviour
 {
     public static MinigameLoveMess Instance;
+    
+    [Header("UI Panels (Kéo 2 cái Container vào đây)")]
+    public GameObject panelChatInterface; // Chứa Text tin nhắn, Nút chọn...
+    public GameObject panelNormalScreen;  // Chứa Hình nền, đồng hồ...
 
     [Header("UI Components")]
     public TextMeshProUGUI txtNYMessage; // Text hiển thị tin nhắn của NY
@@ -35,7 +39,7 @@ public class MinigameLoveMess : MonoBehaviour
     public AudioClip bgmStress;     // Nhạc căng thẳng
     public AudioClip bgmVictory;    // Nhạc chiến thắng
     
-    public static MinigameLoveMess instance;
+    private bool isMinigameStarted = false;
 
     // Trạng thái hội thoại
     private enum State { 
@@ -60,13 +64,7 @@ public class MinigameLoveMess : MonoBehaviour
         btnOptionC.onClick.AddListener(() => OnOptionSelected(2));
         btnPowerOff.onClick.AddListener(ShutdownPhone);
     }
-
-    void OnEnable()
-    {
-        // Reset trạng thái khi mở Minigame
-        ResetMinigame();
-    }
-
+    
     void Update()
     {
         // Logic trừ Energy khi bị Spam tin nhắn (Nhánh B)
@@ -79,6 +77,48 @@ public class MinigameLoveMess : MonoBehaviour
                 
                 // Rung màn hình hoặc hiệu ứng visual nếu cần
             }
+        }
+    }
+    
+    // --- SỬA HÀM NÀY ĐỂ FIX LỖI HIỆN TIN NHẮN SAI LÚC ---
+    void OnEnable()
+    {
+        // 1. Kiểm tra kỹ xem Manager có đang báo sự kiện không
+        bool isEvent = false;
+        if (LoveMessManager.Instance != null)
+        {
+            isEvent = LoveMessManager.Instance.IsEventActive;
+        }
+
+        // 2. Logic Bật/Tắt UI
+        if (isEvent)
+        {
+            // === CÓ SỰ KIỆN ===
+            Debug.Log("Mở điện thoại: CHẾ ĐỘ TIN NHẮN");
+            if(panelChatInterface) panelChatInterface.SetActive(true);
+            if(panelNormalScreen) panelNormalScreen.SetActive(false);
+
+            // Logic lưu tiến độ
+            if (!isMinigameStarted)
+            {
+                ResetMinigame(); // Lần đầu mở -> Reset về Intro
+                isMinigameStarted = true;
+            }
+            // Nếu isMinigameStarted == true -> Giữ nguyên hiện trạng (không reset)
+        }
+        else
+        {
+            // === KHÔNG CÓ SỰ KIỆN ===
+            Debug.Log("Mở điện thoại: CHẾ ĐỘ MÀN HÌNH CHỜ");
+            
+            // Tắt sạch sẽ giao diện chat
+            if(panelChatInterface) panelChatInterface.SetActive(false);
+            
+            // Hiện màn hình chờ (Wallpaper)
+            if(panelNormalScreen) panelNormalScreen.SetActive(true);
+
+            // Reset các cờ để đảm bảo an toàn
+            isMinigameStarted = false;
         }
     }
 

@@ -11,12 +11,12 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9f3758f8f58fdef43803eb9be1df0608, type: 3}
   m_Name: PhotonServerSettings
-  m_EditorClassIdentifier: PhotonUnityNetworking::Photon.Pun.ServerSettings
+  m_EditorClassIdentifier: 
   AppSettings:
     AppIdRealtime: 58d02cb8-a295-4dbc-b0ef-cb16293fd649
     AppIdFusion: 
     AppIdChat: 
-    AppIdVoice: 
+    AppIdVoice: 7654dbf7-8fd2-4145-8e86-5127da1dde57
     AppVersion: 
     UseNameServer: 1
     FixedRegion: 
@@ -28,37 +28,34 @@ MonoBehaviour:
     AuthMode: 0
     EnableLobbyStatistics: 0
     NetworkLogging: 1
-  DevRegion: asia
+  DevRegion: hk
   PunLogging: 0
   EnableSupportLogger: 0
   RunInBackground: 1
   StartInOfflineMode: 0
   RpcList:
+  - CantHearYou
+  - ChangeColour
   - ClickRpc
   - DestroyRpc
+  - HeresWhy
   - DestroySpaceship
   - Fire
-  - RespawnSpaceship
   - MoveCoreRPC
-  - RunTestRPC
-  - SyncPuzzleData
-  - RunTestAllRPC
-  - RequestAssignRoleRPC
+  - PlaySoundRPC
   - ResetAttemptsRPC
   - ResetGameRPC
+  - RespawnSpaceship
   - ReturnAllCoresToInventoryRPC
-  - SyncRolesRPC
-  - SyncResetAttempts
-  - ProcessGuessRPC
-  - SyncInputRPC
-  - SyncTargetCodeRPC
+  - RpcTriggerLoveMessage
+  - RunTestAllRPC
+  - SetWifiStateRPC
   - SubmitGuessRPC
   - SyncCodeRPC
-  - PlaySoundRPC
-  - SetWifiStateRPC
+  - SyncInputRPC
+  - SyncPuzzleData
   - SyncTargetsRPC
   - TryCaptureRPC
-  - RpcTriggerLoveMessage
   DisableAutoOpenWizard: 1
-  ShowSettings: 0
+  ShowSettings: 1
   DevRegionSetOnce: 1
